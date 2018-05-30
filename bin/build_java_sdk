@@ -15,7 +15,7 @@
 # limitations under the License.
 # ------------------------------------------------------------------------------
 top_dir=$(cd $(dirname $(dirname $0)) && pwd)
-cd $top_dir/sdk/java
+cd $top_dir
 
 proxy_regex='http.*://\(.*\):\([0-9]*\).*$'
 
