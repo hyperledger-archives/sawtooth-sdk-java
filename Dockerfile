@@ -18,12 +18,12 @@
 #   build_java.
 #
 # Build:
-#   $ cd sawtooth-core/docker
-#   $ docker build . -f sawtooth-dev-java -t sawtooth-dev-java
+#   $ cd sawtooth-sdk-java
+#   $ docker build . -t sawtooth-sdk-java
 #
 # Run:
-#   $ cd sawtooth-core
-#   $ docker run -v $(pwd):/project/sawtooth-core sawtooth-dev-java
+#   $ cd sawtooth-sdk-java
+#   $ docker run -v $(pwd):/project/sawtooth-sdk-java sawtooth-sdk-java
 
 FROM maven:3-jdk-8
 
@@ -31,16 +31,16 @@ LABEL "install-type"="mounted"
 
 EXPOSE 4004/tcp
 
-RUN mkdir -p /project/sawtooth-core/ \
+RUN mkdir -p /project/sawtooth-sdk-java/ \
  && mkdir -p /var/log/sawtooth \
  && mkdir -p /var/lib/sawtooth \
  && mkdir -p /etc/sawtooth \
  && mkdir -p /etc/sawtooth/keys
 
-ENV PATH=$PATH:/project/sawtooth-core/bin
+ENV PATH=$PATH:/project/sawtooth-sdk-java/bin
 
 WORKDIR /
 
-CMD /project/sawtooth-core/bin/build_java_sdk \
- && /project/sawtooth-core/bin/build_java_intkey \
- && /project/sawtooth-core/bin/build_java_xo
+CMD /project/sawtooth-sdk-java/bin/build_java_sdk \
+ && /project/sawtooth-sdk-java/bin/build_java_intkey \
+ && /project/sawtooth-sdk-java/bin/build_java_xo
