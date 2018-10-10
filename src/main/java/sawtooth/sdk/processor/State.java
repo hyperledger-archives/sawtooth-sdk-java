@@ -82,7 +82,7 @@ public class State {
     if (getResponse != null) {
       if (getResponse.getStatus() == TpStateGetResponse.Status.AUTHORIZATION_ERROR) {
         throw new InvalidTransactionException(
-          "Tried to get unauthorized address " + addresses.toString()) ;
+          "Tried to get unauthorized address " + addresses.toString());
       }
       for (TpStateEntry entry : getResponse.getEntriesList()) {
         results.put(entry.getAddress(), entry.getData());
