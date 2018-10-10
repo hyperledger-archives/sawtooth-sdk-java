@@ -18,8 +18,9 @@ import com.google.protobuf.ByteString;
 
 import sawtooth.sdk.protobuf.Message;
 
+import org.bitcoinj.core.Utils;
+
 import java.io.UnsupportedEncodingException;
-import java.lang.String;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
@@ -32,9 +33,21 @@ import java.util.concurrent.TimeoutException;
  * The client networking class.
  */
 public class Stream {
+  /**
+   * Futures that are waiting to be resolved.
+   */
   private ConcurrentHashMap<String, Future> futureHashMap;
+  /**
+   * Threadsafe queue to interact with the background thread.
+   */
   private LinkedBlockingQueue<SendReceiveThread.MessageWrapper> receiveQueue;
+  /**
+   * The background thread.
+   */
   private SendReceiveThread sendReceiveThread;
+  /**
+   * The Thread that drives the background sendReceiveThread.
+   */
   private Thread thread;
 
   /**
@@ -43,7 +56,7 @@ public class Stream {
    * @param address the zmq address.
    *
    */
-  public Stream(String address) {
+  public Stream(final String address) {
     this.futureHashMap = new ConcurrentHashMap<String, Future>();
     this.receiveQueue = new LinkedBlockingQueue<SendReceiveThread.MessageWrapper>();
     this.sendReceiveThread = new SendReceiveThread(address,
@@ -59,7 +72,7 @@ public class Stream {
    * @return future a future that will have ByteString that can be deserialized into a,
    *         for example, GetResponse
    */
-  public Future send(Message.MessageType destination, ByteString contents) {
+  public final Future send(final Message.MessageType destination, final ByteString contents) {
 
     Message message = Message.newBuilder()
             .setCorrelationId(this.generateId())
@@ -78,7 +91,9 @@ public class Stream {
    * @param correlationId a random string generated on the server for the client to send back
    * @param contents ByteString serialized contents that the server is expecting
    */
-  public void sendBack(Message.MessageType destination, String correlationId, ByteString contents) {
+  public final void sendBack(final Message.MessageType destination,
+                             final String correlationId,
+                             final ByteString contents) {
     Message message = Message.newBuilder()
             .setCorrelationId(correlationId)
             .setMessageType(destination).setContent(contents).build();
@@ -89,7 +104,7 @@ public class Stream {
   /**
    * close the Stream.
    */
-  public void close() {
+  public final void close() {
     try {
       this.sendReceiveThread.stop();
       this.thread.join();
@@ -102,22 +117,23 @@ public class Stream {
    * Get a message that has been received.
    * @return result, a protobuf Message
    */
-  public Message receive() {
+  public final Message receive() {
     SendReceiveThread.MessageWrapper result = null;
     try {
       result = this.receiveQueue.take();
     } catch (InterruptedException ie) {
       ie.printStackTrace();
     }
-    return result.message;
+    return result.getMessage();
   }
 
   /**
    * Get a message that has been received. If the timeout is expired, throws TimeoutException.
    * @param timeout time to wait for a message.
    * @return result, a protobuf Message
+   * @throws TimeoutException The Message is not received before timeout.
    */
-  public Message receive(long timeout) throws TimeoutException {
+  public final Message receive(final long timeout) throws TimeoutException {
     SendReceiveThread.MessageWrapper result = null;
     try {
       result = this.receiveQueue.poll(timeout, TimeUnit.SECONDS);
@@ -127,7 +143,7 @@ public class Stream {
     } catch (InterruptedException ie) {
       ie.printStackTrace();
     }
-    return result.message;
+    return result.getMessage();
   }
 
   /**
@@ -148,9 +164,7 @@ public class Stream {
 
       byte[] digest = messageDigest.digest();
 
-      for (int i = 0; i < digest.length; i++) {
-        stringBuilder.append(Integer.toHexString(0xFF & digest[i]));
-      }
+      stringBuilder.append(Utils.HEX.encode(digest).toLowerCase());
     } catch (NoSuchAlgorithmException nsae) {
       nsae.printStackTrace();
     } catch (UnsupportedEncodingException usee) {
