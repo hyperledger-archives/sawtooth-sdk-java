@@ -56,6 +56,7 @@ public class State {
    * @param addresses a collection of address Strings
    * @return Map where the keys are addresses, values Bytestring
    * @throws InternalError something went wrong processing transaction
+   * @throws InvalidTransactionException an invalid transaction was encountered
    */
   public final Map<String, ByteString> getState(final Collection<String> addresses)
       throws InternalError, InvalidTransactionException {
@@ -101,6 +102,7 @@ public class State {
    * @param addressValuePairs A collection of Map.Entry's
    * @return addressesThatWereSet, A collection of address Strings that were set
    * @throws InternalError something went wrong processing transaction
+   * @throws InvalidTransactionException an invalid transaction was encountered
    */
   public final Collection<String> setState(final Collection<java.util.Map.Entry<String,
           ByteString>> addressValuePairs) throws InternalError, InvalidTransactionException {

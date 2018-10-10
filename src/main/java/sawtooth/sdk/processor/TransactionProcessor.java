@@ -122,6 +122,8 @@ public class TransactionProcessor implements Runnable {
 
   /**
   * Get the current message that is being processed.
+   *
+   * @return the current message
   */
   private Message getCurrentMessage() {
     return this.currentMessage;
@@ -173,6 +175,7 @@ public class TransactionProcessor implements Runnable {
   * Find the handler that should be used to process the given message.
   * @param message The message that has the TpProcessRequest that the header
   *                that will be checked against the handler.
+  * @return the handler that should be used to processor the given message
   */
   private TransactionHandler findHandler(final Message message) {
     try {
