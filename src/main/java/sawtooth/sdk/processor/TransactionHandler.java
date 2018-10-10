@@ -23,13 +23,13 @@ import java.util.Collection;
 public interface TransactionHandler {
 
 
-  public String transactionFamilyName();
+  String transactionFamilyName();
 
-  public String getVersion();
+  String getVersion();
 
-  public Collection<String> getNameSpaces();
+  Collection<String> getNameSpaces();
 
-  public void apply(TpProcessRequest transactionRequest,
+  void apply(TpProcessRequest transactionRequest,
                     State state) throws InvalidTransactionException, InternalError;
 
 
