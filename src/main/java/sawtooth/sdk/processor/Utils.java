@@ -20,7 +20,11 @@ import java.security.NoSuchAlgorithmException;
 import javax.xml.bind.DatatypeConverter;
 
 
-public class Utils {
+public final class Utils {
+
+  private Utils() {
+
+  }
 
   /**
    * Create a sha-512 hash of a byte array.
