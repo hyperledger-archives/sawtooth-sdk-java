@@ -45,9 +45,9 @@ public class State {
   private String contextId;
   private static final int TIME_OUT = 2;
 
-  public State(final Stream stream, final String contextId) {
-    this.stream = stream;
-    this.contextId = contextId;
+  public State(final Stream myStream, final String myContextId) {
+    this.stream = myStream;
+    this.contextId = myContextId;
   }
 
   /**

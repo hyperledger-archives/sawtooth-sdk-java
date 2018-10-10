@@ -33,12 +33,12 @@ public class SawtoothException extends Exception {
   /**
    * Creates an exception with extended data.
    * @param message the message to returned on the response
-   * @param extendedData opaque, application-specific encoded data to be
+   * @param myExtendedData opaque, application-specific encoded data to be
    *     returned on the response
    */
-  public SawtoothException(final String message, final byte[] extendedData) {
+  public SawtoothException(final String message, final byte[] myExtendedData) {
     super(message);
-    this.extendedData = extendedData;
+    this.extendedData = myExtendedData;
   }
 
   /**
