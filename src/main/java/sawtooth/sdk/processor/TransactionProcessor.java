@@ -87,7 +87,7 @@ public class TransactionProcessor implements Runnable {
    * constructor.
    * @param address the zmq address
    */
-  public TransactionProcessor(String address) {
+  public TransactionProcessor(final String address) {
     this.stream = new Stream(address);
     this.handlers = new ArrayList<TransactionHandler>();
     this.currentMessage = null;
@@ -99,7 +99,7 @@ public class TransactionProcessor implements Runnable {
    * add a handler that will be run from within the run method.
    * @param handler implements that TransactionHandler interface
    */
-  public void addHandler(TransactionHandler handler) {
+  public final void addHandler(final TransactionHandler handler) {
     TpRegisterRequest registerRequest = TpRegisterRequest
             .newBuilder()
             .setFamily(handler.transactionFamilyName())
@@ -133,8 +133,8 @@ public class TransactionProcessor implements Runnable {
   * @param stream The Stream to use to send back responses.
   * @param handler The handler that should be used to process the message.
   */
-  private static void process(Message message, Stream stream,
-      TransactionHandler handler) {
+  private static void process(final Message message, final Stream stream,
+      final TransactionHandler handler) {
     try {
       TpProcessRequest transactionRequest = TpProcessRequest
               .parseFrom(message.getContent());
@@ -174,7 +174,7 @@ public class TransactionProcessor implements Runnable {
   * @param message The message that has the TpProcessRequest that the header
   *                that will be checked against the handler.
   */
-  private TransactionHandler findHandler(Message message) {
+  private TransactionHandler findHandler(final Message message) {
     try {
       TpProcessRequest transactionRequest = TpProcessRequest
               .parseFrom(this.currentMessage.getContent());
@@ -196,7 +196,7 @@ public class TransactionProcessor implements Runnable {
   }
 
   @Override
-  public void run() {
+  public final void run() {
     while (true) {
       if (!this.handlers.isEmpty()) {
         this.currentMessage = this.stream.receive();

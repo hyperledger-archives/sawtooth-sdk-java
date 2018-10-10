@@ -28,7 +28,7 @@ public class Utils {
    * @param data a byte array which the hash is created from
    * @return result a lowercase HexDigest of a sha-512 hash
    */
-  public static String hash512(byte[] data) {
+  public static String hash512(final byte[] data) {
     String result = null;
     try {
       MessageDigest messageDigest = MessageDigest.getInstance("SHA-512");
@@ -52,7 +52,7 @@ public class Utils {
    * @param fromCbor byte array from a String that came in via cbor
    * @return a UTF-8 representation of the byte array
    */
-  public static String stringByteArrayToString(byte[] fromCbor) {
+  public static String stringByteArrayToString(final byte[] fromCbor) {
     return new String(fromCbor, Charset.forName("UTF-8"));
   }
 

@@ -15,11 +15,11 @@
 package sawtooth.sdk.processor.exceptions;
 
 public class InvalidTransactionException extends SawtoothException {
-  public InvalidTransactionException(String message) {
+  public InvalidTransactionException(final String message) {
     super(message);
   }
 
-  public InvalidTransactionException(String message, byte[] extendedData) {
+  public InvalidTransactionException(final String message, final byte[] extendedData) {
     super(message, extendedData);
   }
 }

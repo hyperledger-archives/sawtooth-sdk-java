@@ -16,11 +16,11 @@ package sawtooth.sdk.processor.exceptions;
 
 
 public class InternalError extends SawtoothException {
-  public InternalError(String message) {
+  public InternalError(final String message) {
     super(message);
   }
 
-  public InternalError(String message, byte[] extendedData) {
+  public InternalError(final String message, final byte[] extendedData) {
     super(message, extendedData);
   }
 }

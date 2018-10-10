@@ -45,7 +45,7 @@ public class SawtoothException extends Exception {
    * The extended data associated with this exception.
    * @return opaque, application-specific encoded data
    */
-  public byte[] getExtendedData() {
+  public final byte[] getExtendedData() {
     return extendedData;
   }
 }
