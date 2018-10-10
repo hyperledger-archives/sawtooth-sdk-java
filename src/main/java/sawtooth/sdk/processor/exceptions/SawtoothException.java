@@ -19,6 +19,9 @@ package sawtooth.sdk.processor.exceptions;
  * returned on the response.
  */
 public class SawtoothException extends Exception {
+  /**
+   * Optional extra data for this error.
+   */
   private final byte[] extendedData;
 
   /**

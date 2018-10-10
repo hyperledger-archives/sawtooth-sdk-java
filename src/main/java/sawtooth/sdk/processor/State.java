@@ -41,10 +41,26 @@ import java.util.Map;
  */
 public class State {
 
+  /**
+   * The stream networking for this class.
+   */
   private Stream stream;
+
+  /**
+   * The id for a specific context.
+   */
   private String contextId;
+
+  /**
+   * How long to wait for a networking response.
+   */
   private static final int TIME_OUT = 2;
 
+  /**
+   * The constructor for this class.
+   * @param myStream a networking stream
+   * @param myContextId a context id
+   */
   public State(final Stream myStream, final String myContextId) {
     this.stream = myStream;
     this.contextId = myContextId;

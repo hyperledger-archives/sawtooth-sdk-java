@@ -20,8 +20,14 @@ import java.security.NoSuchAlgorithmException;
 import javax.xml.bind.DatatypeConverter;
 
 
+/**
+ * Utilities class.
+ */
 public final class Utils {
 
+  /**
+   * Fixes lint about public constructor.
+   */
   private Utils() {
 
   }

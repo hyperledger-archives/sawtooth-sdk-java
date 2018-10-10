@@ -36,15 +36,39 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
+/**
+ * Sawtooth transaction processor.
+ */
 public class TransactionProcessor implements Runnable {
 
+  /**
+   * Logging class for this processor.
+   */
   private static final Logger LOGGER = Logger.getLogger(TransactionProcessor.class.getName());
 
+  /**
+   * Streaming class for this processor.
+   */
   private Stream stream;
+
+  /**
+   * List of transaction handlers for this processor.
+   */
   private ArrayList<TransactionHandler> handlers;
+
+  /**
+   * The current message for this processor.
+   */
   private Message currentMessage;
+
+  /**
+   * Whether or not this processor has been registered.
+   */
   private boolean registered;
 
+  /**
+   * Handles shutting down this transaction processor.
+   */
   class Shutdown extends Thread {
     @Override
     public void run() {
