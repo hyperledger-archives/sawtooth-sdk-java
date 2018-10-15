@@ -41,13 +41,29 @@ import java.util.Map;
  */
 public class State {
 
+  /**
+   * The stream networking for this class.
+   */
   private Stream stream;
+
+  /**
+   * The id for a specific context.
+   */
   private String contextId;
+
+  /**
+   * How long to wait for a networking response.
+   */
   private static final int TIME_OUT = 2;
 
-  public State(Stream stream, String contextId) {
-    this.stream = stream;
-    this.contextId = contextId;
+  /**
+   * The constructor for this class.
+   * @param myStream a networking stream
+   * @param myContextId a context id
+   */
+  public State(final Stream myStream, final String myContextId) {
+    this.stream = myStream;
+    this.contextId = myContextId;
   }
 
   /**
@@ -56,8 +72,9 @@ public class State {
    * @param addresses a collection of address Strings
    * @return Map where the keys are addresses, values Bytestring
    * @throws InternalError something went wrong processing transaction
+   * @throws InvalidTransactionException an invalid transaction was encountered
    */
-  public Map<String, ByteString> getState(Collection<String> addresses)
+  public final Map<String, ByteString> getState(final Collection<String> addresses)
       throws InternalError, InvalidTransactionException {
     TpStateGetRequest getRequest = TpStateGetRequest.newBuilder()
             .addAllAddresses(addresses)
@@ -81,7 +98,7 @@ public class State {
     if (getResponse != null) {
       if (getResponse.getStatus() == TpStateGetResponse.Status.AUTHORIZATION_ERROR) {
         throw new InvalidTransactionException(
-          "Tried to get unauthorized address " + addresses.toString()) ;
+          "Tried to get unauthorized address " + addresses.toString());
       }
       for (TpStateEntry entry : getResponse.getEntriesList()) {
         results.put(entry.getAddress(), entry.getData());
@@ -101,8 +118,9 @@ public class State {
    * @param addressValuePairs A collection of Map.Entry's
    * @return addressesThatWereSet, A collection of address Strings that were set
    * @throws InternalError something went wrong processing transaction
+   * @throws InvalidTransactionException an invalid transaction was encountered
    */
-  public Collection<String> setState(Collection<java.util.Map.Entry<String,
+  public final Collection<String> setState(final Collection<java.util.Map.Entry<String,
           ByteString>> addressValuePairs) throws InternalError, InvalidTransactionException {
     ArrayList<TpStateEntry> entryArrayList = new ArrayList<TpStateEntry>();
     for (Map.Entry<String, ByteString> entry : addressValuePairs) {

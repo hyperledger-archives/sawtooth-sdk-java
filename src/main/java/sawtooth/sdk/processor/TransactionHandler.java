@@ -20,16 +20,37 @@ import sawtooth.sdk.protobuf.TpProcessRequest;
 
 import java.util.Collection;
 
+/**
+ * Interface for creating a transaction handler.
+ */
 public interface TransactionHandler {
 
+  /**
+   * Returns the transaction family's name.
+   * @return the transaction family's name
+   */
+  String transactionFamilyName();
 
-  public String transactionFamilyName();
+  /**
+   * Returns the transaction family's version.
+   * @return the transaction family's version
+   */
+  String getVersion();
 
-  public String getVersion();
+  /**
+   * Returns the namespaces for this transaction handler.
+   * @return the namespaces for this transaction handler
+   */
+  Collection<String> getNameSpaces();
 
-  public Collection<String> getNameSpaces();
-
-  public void apply(TpProcessRequest transactionRequest,
+  /**
+   * Applies the given transaction request.
+   * @param transactionRequest the transaction request to apply
+   * @param state the on-chain state for this transaction
+   * @throws InvalidTransactionException an invalid transaction was encountered
+   * @throws InternalError something went wrong processing transaction
+   */
+  void apply(TpProcessRequest transactionRequest,
                     State state) throws InvalidTransactionException, InternalError;
 
 

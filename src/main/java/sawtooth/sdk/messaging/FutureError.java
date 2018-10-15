@@ -18,45 +18,54 @@ import com.google.protobuf.ByteString;
 
 import sawtooth.sdk.processor.exceptions.ValidatorConnectionError;
 
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.TimeoutException;
 
-public class FutureError implements Future{
+/**
+ * FutureError throws a ValidatorConnectionError from all of its methods.
+ * Used to resolve a future with an error response.
+ */
+public class FutureError implements Future {
 
   /**
    * Constructor.
    */
-  public FutureError() {
-  }
+  public FutureError() { }
 
   /**
    * Always raises ValidatorConnectionError.
+   * @throws ValidatorConnectionError Always throws this Exception.
+   * @return Does not return.
    */
-  public ByteString getResult() throws InterruptedException,
-      ValidatorConnectionError {
+  public final ByteString getResult() throws ValidatorConnectionError {
     throw new ValidatorConnectionError();
   }
 
   /**
    * Always raises ValidatorConnectionError.
+   * @param time The timeout.
+   * @throws ValidatorConnectionError Always throws this Exception.
+   * @throws TimeoutException Does not throw this exception.
+   * @return Does not return.
    */
-  public ByteString getResult(long time) throws InterruptedException,
-     ValidatorConnectionError {
+  public final ByteString getResult(final long time) throws TimeoutException, ValidatorConnectionError {
     throw new ValidatorConnectionError();
   }
 
   /**
    * Always raises ValidatorConnectionError.
+   * @param byteString The bytes.
+   * @throws ValidatorConnectionError Always throws this exception.
    */
-  public void setResult(ByteString byteString) throws ValidatorConnectionError {
+  public final void setResult(final ByteString byteString) throws ValidatorConnectionError {
     throw new ValidatorConnectionError();
   }
 
   /**
    * Always raises ValidatorConnectionError.
+   * @return Does not return.
+   * @throws ValidatorConnectionError Always throws this exception.
    */
-  public boolean isDone() throws ValidatorConnectionError {
+  public final boolean isDone() throws ValidatorConnectionError {
     throw new ValidatorConnectionError();
   }
 

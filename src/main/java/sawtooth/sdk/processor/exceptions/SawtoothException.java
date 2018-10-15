@@ -19,6 +19,9 @@ package sawtooth.sdk.processor.exceptions;
  * returned on the response.
  */
 public class SawtoothException extends Exception {
+  /**
+   * Optional extra data for this error.
+   */
   private final byte[] extendedData;
 
   /**
@@ -33,19 +36,19 @@ public class SawtoothException extends Exception {
   /**
    * Creates an exception with extended data.
    * @param message the message to returned on the response
-   * @param extendedData opaque, application-specific encoded data to be
+   * @param myExtendedData opaque, application-specific encoded data to be
    *     returned on the response
    */
-  public SawtoothException(final String message, final byte[] extendedData) {
+  public SawtoothException(final String message, final byte[] myExtendedData) {
     super(message);
-    this.extendedData = extendedData;
+    this.extendedData = myExtendedData;
   }
 
   /**
    * The extended data associated with this exception.
    * @return opaque, application-specific encoded data
    */
-  public byte[] getExtendedData() {
+  public final byte[] getExtendedData() {
     return extendedData;
   }
 }

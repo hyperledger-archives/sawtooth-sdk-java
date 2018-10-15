@@ -14,13 +14,24 @@
 
 package sawtooth.sdk.processor.exceptions;
 
-
+/**
+ * An internal error.
+ */
 public class InternalError extends SawtoothException {
-  public InternalError(String message) {
+  /**
+   * The simple constructor for this class.
+   * @param message the internal error message
+   */
+  public InternalError(final String message) {
     super(message);
   }
 
-  public InternalError(String message, byte[] extendedData) {
+  /**
+   * The extended constructor for this class.
+   * @param message the internal error message
+   * @param extendedData extended error data
+   */
+  public InternalError(final String message, final byte[] extendedData) {
     super(message, extendedData);
   }
 }

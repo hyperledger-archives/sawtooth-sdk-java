@@ -14,8 +14,14 @@
 
 package sawtooth.sdk.processor.exceptions;
 
+/**
+ * A connection error to the validator.
+ */
 public class ValidatorConnectionError extends Exception {
 
+  /**
+   * The constructor for this class.
+   */
   public ValidatorConnectionError() {
     super("The connection to the validator was lost");
   }

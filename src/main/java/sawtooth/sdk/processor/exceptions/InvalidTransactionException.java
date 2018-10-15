@@ -14,12 +14,24 @@
 
 package sawtooth.sdk.processor.exceptions;
 
+/**
+ * An invalid transaction.
+ */
 public class InvalidTransactionException extends SawtoothException {
-  public InvalidTransactionException(String message) {
+  /**
+   * The simple constructor for this class.
+   * @param message the invalid transaction message
+   */
+  public InvalidTransactionException(final String message) {
     super(message);
   }
 
-  public InvalidTransactionException(String message, byte[] extendedData) {
+  /**
+   * The extended constructor for this class.
+   * @param message the invalid transaction message
+   * @param extendedData the extended error data
+   */
+  public InvalidTransactionException(final String message, final byte[] extendedData) {
     super(message, extendedData);
   }
 }

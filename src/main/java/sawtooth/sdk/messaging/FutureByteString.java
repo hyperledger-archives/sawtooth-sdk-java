@@ -22,31 +22,48 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-
-public class FutureByteString implements Future{
-
+/** A future that resolves to ByteString.
+ *
+ */
+public class FutureByteString implements Future {
+  /**
+   * The result ByteString that is to be resolved.
+   */
   private ByteString result;
+
+  /**
+   * The coorelation id associated with the message being waited for.
+   */
   private String correlationId;
+
+  /**
+   * Lock to make the actions on this object synchronous.
+   */
   private final ReentrantLock lock;
+
+  /**
+   * A condition variable to wait for the result.
+   */
   private final Condition condition;
 
   /**
    * Constructor.
-   * @param correlationId created with Stream.generateId,
+   * @param id created with Stream.generateId,
    *                      to match future with it's result
    */
-  public FutureByteString(String correlationId) {
+  public FutureByteString(final String id) {
     this.lock = new ReentrantLock();
     this.condition = lock.newCondition();
-    this.correlationId = correlationId;
+    this.correlationId = id;
     this.result = null;
   }
 
   /**
    * Returns the ByteString result, waiting for it to not be null.
    * @return ByteString protobuf
+   * @throws InterruptedException an interrupt happens during the method call.
    */
-  public ByteString getResult() throws InterruptedException {
+  public final ByteString getResult() throws InterruptedException {
     ByteString byteString = null;
     lock.lock();
     try {
@@ -65,8 +82,10 @@ public class FutureByteString implements Future{
    * Returns the ByteString result. If the timeout expires, throws TimeoutException.
    * @param timeout time to wait for a result.
    * @return ByteString protobuf
+   * @throws InterruptedException an interrupt happens during the method call.
+   * @throws TimeoutException the result is not received before the timeout.
    */
-  public ByteString getResult(long timeout) throws InterruptedException, TimeoutException {
+  public final ByteString getResult(final long timeout) throws InterruptedException, TimeoutException {
     ByteString byteString = null;
     lock.lock();
     try {
@@ -87,7 +106,7 @@ public class FutureByteString implements Future{
    * Call this method to set the result.
    * @param byteString the byteString used to resolve the future
    */
-  public void setResult(ByteString byteString) {
+  public final void setResult(final ByteString byteString) {
     lock.lock();
     try {
       result = byteString;
@@ -101,7 +120,7 @@ public class FutureByteString implements Future{
    * Returns true if the future has a result, otherwise false.
    * @return answer boolean
    */
-  public boolean isDone() {
+  public final boolean isDone() {
     boolean answer = false;
     lock.lock();
     try {
@@ -110,6 +129,14 @@ public class FutureByteString implements Future{
       lock.unlock();
     }
     return answer;
+  }
+
+  /** Get the value of the coorelation id.
+   *
+   * @return String coorelation id.
+   */
+  public final String getCorrelationId() {
+    return this.correlationId;
   }
 
 }

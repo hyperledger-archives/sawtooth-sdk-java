@@ -22,20 +22,56 @@ import org.bitcoinj.core.Utils;
 
 import java.security.SecureRandom;
 
+/** Signing has methods to manipulate bytes, Strings,
+ *  and ECKeys to sign bytes and produce hex encoded Strings.
+ *
+ */
+public final class Signing {
 
-public class Signing {
+  /**
+   * This class only has static methods, so the default constructor should be private.
+   */
+  private Signing() { };
 
+  /**
+   * The number of bytes of the signature produced.
+   */
+  private static final int NUM_SIGNATURE_BYTES = 64;
+
+  /**
+   * Half of the number of bytes of the signature produced.
+   */
+  private static final int HALF_NUM_SIGNATURE_BYTES = 32;
+
+  /**
+   * Parameters necessary for reading a wif encoded String.
+   */
   private static final NetworkParameters MAINNET = org.bitcoinj.params.MainNetParams.get();
 
-  public static ECKey readWif(String wif) {
+  /** Read in a wif encoded String and produce a ECKey private key.
+   *
+   * @param wif String encoded in the wif format.
+   * @return ECkey private key
+   */
+  public static ECKey readWif(final String wif) {
     return DumpedPrivateKey.fromBase58(MAINNET, wif).getKey();
   }
 
-  public static ECKey generatePrivateKey(SecureRandom random) {
+  /** Generate an ECKey private key from an entropy enhancing random number generator.
+   *
+   * @param random random number generator
+   * @return ECKey private key
+   */
+  public static ECKey generatePrivateKey(final SecureRandom random) {
     return new ECKey(random);
   }
 
-  public static String getPublicKey(ECKey privateKey) {
+  /** Static method to return a public key from a private key.
+   *
+   * @param privateKey the private key
+   * @return String public key
+   */
+  public static String getPublicKey(final ECKey privateKey) {
     return ECKey.fromPrivate(privateKey.getPrivKey(), true).getPublicKeyAsHex();
   }
 
@@ -45,14 +81,15 @@ public class Signing {
    * @param data the data to sign
    * @return String the signature
    */
-  public static String sign(ECKey privateKey, byte[] data) {
+  public static String sign(final ECKey privateKey, final byte[] data) {
     Sha256Hash hash = Sha256Hash.of(data);
     ECKey.ECDSASignature sig = privateKey.sign(hash);
 
-    byte[] csig = new byte[64];
+    byte[] csig = new byte[NUM_SIGNATURE_BYTES];
 
-    System.arraycopy(Utils.bigIntegerToBytes(sig.r, 32), 0, csig, 0, 32);
-    System.arraycopy(Utils.bigIntegerToBytes(sig.s, 32), 0, csig, 32, 32);
+    System.arraycopy(Utils.bigIntegerToBytes(sig.r, HALF_NUM_SIGNATURE_BYTES), 0, csig, 0, HALF_NUM_SIGNATURE_BYTES);
+    System.arraycopy(Utils.bigIntegerToBytes(sig.s, HALF_NUM_SIGNATURE_BYTES), 0, csig,
+        HALF_NUM_SIGNATURE_BYTES, HALF_NUM_SIGNATURE_BYTES);
 
     return Utils.HEX.encode(csig);
   }
