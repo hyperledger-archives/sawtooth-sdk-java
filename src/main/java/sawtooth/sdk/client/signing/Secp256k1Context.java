@@ -36,6 +36,16 @@ public class Secp256k1Context implements Context {
    */
   private static final Logger LOGGER = Logger.getLogger(Context.class.getName());
 
+  /**
+   * The number of bytes in the signature.
+   */
+  private static final int NUM_SIGNATURE_BYTES = 64;
+
+  /**
+   * Half of the number of bytes in the signature.
+   */
+  private static final int HALF_NUM_SIGNATURE_BYTES = 32;
+
   @Override
   public final String getAlgorithmName() {
     return SECP2561K_ALGORITHM_NAME;
@@ -48,20 +58,31 @@ public class Secp256k1Context implements Context {
     return new Secp256k1PublicKey(publicKey);
   }
 
-  private static byte[] generateCompactSig(ECKey privateKey, byte[] data) {
+  /**
+   * Generate a bitcoin-style compact signature.
+   *
+   * @param privateKey ECKey private key
+   * @param data the raw message bytes
+   * @return the raw signature bytes
+   */
+  private static byte[] generateCompactSig(final ECKey privateKey, final byte[] data) {
     Sha256Hash hash = Sha256Hash.of(data);
     ECKey.ECDSASignature sig = privateKey.sign(hash);
 
-    byte[] csig = new byte[64];
+    byte[] csig = new byte[NUM_SIGNATURE_BYTES];
 
-    System.arraycopy(Utils.bigIntegerToBytes(sig.r, 32), 0, csig, 0, 32);
-    System.arraycopy(Utils.bigIntegerToBytes(sig.s, 32), 0, csig, 32, 32);
+    System.arraycopy(Utils.bigIntegerToBytes(sig.r, HALF_NUM_SIGNATURE_BYTES), 0,
+                                             csig, 0, HALF_NUM_SIGNATURE_BYTES);
+    System.arraycopy(Utils.bigIntegerToBytes(sig.s, HALF_NUM_SIGNATURE_BYTES), 0,
+                                             csig, HALF_NUM_SIGNATURE_BYTES, HALF_NUM_SIGNATURE_BYTES);
     return csig;
   }
 
   @Override
   public final String sign(final byte[] data, final PrivateKey privateKey) {
-    throw new RuntimeException("Not Implemented");
+    ECKey privKey = ECKey.fromPrivate(privateKey.getBytes());
+
+    return Utils.HEX.encode(generateCompactSig(privKey, data));
   }
 
   @Override
