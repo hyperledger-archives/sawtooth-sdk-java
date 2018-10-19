@@ -15,6 +15,8 @@
 package sawtooth.sdk.client.signing;
 
 import org.bitcoinj.core.ECKey;
+import org.bitcoinj.core.Sha256Hash;
+import org.bitcoinj.core.Utils;
 
 import java.security.SecureRandom;
 import java.util.logging.Logger;
@@ -44,6 +46,17 @@ public class Secp256k1Context implements Context {
     ECKey privKey = ECKey.fromPrivate(privateKey.getBytes());
     byte[] publicKey = privKey.getPubKey();
     return new Secp256k1PublicKey(publicKey);
+  }
+
+  private static byte[] generateCompactSig(ECKey privateKey, byte[] data) {
+    Sha256Hash hash = Sha256Hash.of(data);
+    ECKey.ECDSASignature sig = privateKey.sign(hash);
+
+    byte[] csig = new byte[64];
+
+    System.arraycopy(Utils.bigIntegerToBytes(sig.r, 32), 0, csig, 0, 32);
+    System.arraycopy(Utils.bigIntegerToBytes(sig.s, 32), 0, csig, 32, 32);
+    return csig;
   }
 
   @Override
