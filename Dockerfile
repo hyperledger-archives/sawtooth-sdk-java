@@ -41,6 +41,11 @@ ENV PATH=$PATH:/project/sawtooth-sdk-java/bin
 
 WORKDIR /
 
-CMD /project/sawtooth-sdk-java/bin/build_java_sdk \
- && /project/sawtooth-sdk-java/bin/build_java_intkey \
+RUN mkdir /build
+
+COPY . /build/
+
+RUN /build/bin/build_java_sdk
+
+CMD /project/sawtooth-sdk-java/bin/build_java_intkey \
  && /project/sawtooth-sdk-java/bin/build_java_xo
