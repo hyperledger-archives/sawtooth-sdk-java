@@ -18,7 +18,9 @@ import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Utils;
 
+import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 /**
@@ -75,6 +77,7 @@ public class Secp256k1Context implements Context {
                                              csig, 0, HALF_NUM_SIGNATURE_BYTES);
     System.arraycopy(Utils.bigIntegerToBytes(sig.s, HALF_NUM_SIGNATURE_BYTES), 0,
                                              csig, HALF_NUM_SIGNATURE_BYTES, HALF_NUM_SIGNATURE_BYTES);
+
     return csig;
   }
 
@@ -88,7 +91,19 @@ public class Secp256k1Context implements Context {
   @Override
   public final boolean verify(final String signature, final byte[] data, final PublicKey publicKey) {
 
-    throw new RuntimeException("Not Implemented");
+    byte[] signatureBytes = Utils.HEX.decode(signature);
+
+    byte[] rbytes = Arrays.copyOfRange(signatureBytes, 0, HALF_NUM_SIGNATURE_BYTES);
+    byte[] sbytes = Arrays.copyOfRange(signatureBytes, HALF_NUM_SIGNATURE_BYTES, NUM_SIGNATURE_BYTES);
+
+    BigInteger rSig = new BigInteger(1, rbytes);
+    BigInteger sSig = new BigInteger(1, sbytes);
+
+    ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(rSig, sSig);
+
+    byte[] hash = Sha256Hash.of(data).getBytes();
+
+    return ECKey.verify(hash, ecdsaSignature, publicKey.getBytes());
   }
 
   @Override
