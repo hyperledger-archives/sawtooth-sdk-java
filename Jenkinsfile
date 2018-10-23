@@ -61,6 +61,13 @@ node ('master') {
         env.ISOLATION_ID = sh(returnStdout: true, script: 'printf $BUILD_TAG | sha256sum | cut -c1-64').trim()
         env.COMPOSE_PROJECT_NAME = sh(returnStdout: true, script: 'printf $BUILD_TAG | sha256sum | cut -c1-64').trim()
 
+        // Build the test dependencies
+        stage("Build test dependencies") {
+            sh 'docker-compose -f docker/compose/java-build.yaml build'
+            sh 'docker-compose -f docker/compose/java-build.yaml up'
+            sh 'docker-compose -f docker/compose/java-build.yaml down'
+        }
+
         // Run the tests
         stage("Run Tests") {
             sh 'docker-compose -f examples/intkey_java/tests/test_intkey_smoke_java.yaml up --abort-on-container-exit'
