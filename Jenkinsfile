@@ -59,6 +59,14 @@ node ('master') {
 
         // Set the ISOLATION_ID environment variable for the whole pipeline
         env.ISOLATION_ID = sh(returnStdout: true, script: 'printf $BUILD_TAG | sha256sum | cut -c1-64').trim()
+        env.COMPOSE_PROJECT_NAME = sh(returnStdout: true, script: 'printf $BUILD_TAG | sha256sum | cut -c1-64').trim()
+
+        // Build the test dependencies
+        stage("Build test dependencies") {
+            sh 'docker-compose -f docker/compose/java-build.yaml build'
+            sh 'docker-compose -f docker/compose/java-build.yaml up'
+            sh 'docker-compose -f docker/compose/java-build.yaml down'
+        }
 
         // Run the tests
         stage("Run Tests") {
