@@ -28,8 +28,12 @@ services:
 
   intkey-tp-java:
     build:
+      args:
+        - http_proxy
+        - https_proxy
+        - no_proxy
       context: ../../..
-      dockerfile: ./Dockerfile
+      dockerfile: ./examples/intkey_java/Dockerfile
     image: sawtooth-intkey-tp-java-local:$ISOLATION_ID
     volumes:
       - ../../..:/project/sawtooth-sdk-java

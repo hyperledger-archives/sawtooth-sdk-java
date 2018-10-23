@@ -1,4 +1,4 @@
-# Copyright 2017 Intel Corporation
+# Copyright 2018 Bitwise IO
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,18 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------------
-
-# Description:
-#   Builds an image to be used when developing in Java. The default CMD is to run
-#   build_java.
-#
-# Build:
-#   $ cd sawtooth-sdk-java
-#   $ docker build . -t sawtooth-sdk-java
-#
-# Run:
-#   $ cd sawtooth-sdk-java
-#   $ docker run -v $(pwd):/project/sawtooth-sdk-java sawtooth-sdk-java
 
 FROM maven:3-jdk-8
 
@@ -47,5 +35,4 @@ COPY . /build/
 
 RUN /build/bin/build_java_sdk
 
-CMD /project/sawtooth-sdk-java/bin/build_java_intkey \
- && /project/sawtooth-sdk-java/bin/build_java_xo
+CMD /project/sawtooth-sdk-java/bin/build_java_xo
