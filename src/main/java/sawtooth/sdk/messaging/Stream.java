@@ -18,11 +18,6 @@ import com.google.protobuf.ByteString;
 
 import sawtooth.sdk.protobuf.Message;
 
-import org.bitcoinj.core.Utils;
-
-import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -147,31 +142,13 @@ public class Stream {
   }
 
   /**
-   * generate a random String using the sha-256 algorithm, to correlate sent messages.
+   * generate a random String, to correlate sent messages.
    * with futures
    *
    * @return a random String
    */
   private String generateId() {
-    StringBuilder stringBuilder = new StringBuilder();
-    try {
-      MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
-      UUID uuid = UUID.randomUUID();
-      byte[] dataRepresentingUuid = uuid.toString().getBytes("UTF-8");
-
-      messageDigest.update(dataRepresentingUuid);
-
-
-      byte[] digest = messageDigest.digest();
-
-      stringBuilder.append(Utils.HEX.encode(digest).toLowerCase());
-    } catch (NoSuchAlgorithmException nsae) {
-      nsae.printStackTrace();
-    } catch (UnsupportedEncodingException usee) {
-      usee.printStackTrace();
-    }
-    return stringBuilder.toString();
+    return UUID.randomUUID().toString();
   }
-
 
 }
