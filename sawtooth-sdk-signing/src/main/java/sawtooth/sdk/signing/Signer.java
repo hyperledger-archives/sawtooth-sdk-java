@@ -12,7 +12,7 @@
  limitations under the License.
 ------------------------------------------------------------------------------*/
 
-package sawtooth.sdk.client.signing;
+package sawtooth.sdk.signing;
 
 /**
  * Convenience class that wraps the PrivateKey and the Context.
@@ -20,11 +20,11 @@ package sawtooth.sdk.client.signing;
 public class Signer {
 
   /**
-   * The `sawtooth.sdk.client.signing.Context` implementation.
+   * The `sawtooth.sdk.signing.Context` implementation.
    */
   private Context mContext;
   /**
-   * The `sawtooth.sdk.client.signing.PrivateKey` implementation.
+   * The `sawtooth.sdk.signing.PrivateKey` implementation.
    */
   private PrivateKey mPrivateKey;
 

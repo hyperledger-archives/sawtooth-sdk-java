@@ -12,7 +12,7 @@
  limitations under the License.
 ------------------------------------------------------------------------------*/
 
-package sawtooth.sdk.client.signing;
+package sawtooth.sdk.signing;
 
 /**
  * Interface to be implemented by different signing backends.

@@ -12,31 +12,7 @@
  limitations under the License.
 ------------------------------------------------------------------------------*/
 
-package sawtooth.sdk.client.signing;
-
 /**
- * A public key for an asymmetric key algorithm.
+ * Signing has pluggable interfaces for signing and verifying signatures.
  */
-public interface PublicKey {
-
-  /**
-   * Get the algorithm associated with the public key.
-   *
-   * @return SigningAlgorithm algorithm name.
-   */
-  String getAlgorithmName();
-
-  /**
-   * Get the PublicKey as hex.
-   *
-   * @return String public key, encoded as hex.
-   */
-  String hex();
-
-  /**
-   * Get the underlying bytes.
-   *
-   * @return the byte[] underlying the PublicKey.
-   */
-  byte[] getBytes();
-}
+package sawtooth.sdk.signing;

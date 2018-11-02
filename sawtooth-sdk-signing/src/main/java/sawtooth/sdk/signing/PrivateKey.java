@@ -12,35 +12,31 @@
  limitations under the License.
 ------------------------------------------------------------------------------*/
 
-package sawtooth.sdk.client.signing;
+package sawtooth.sdk.signing;
 
 /**
- * A factory class for making Contexts.
+ * A PrivateKey for any asymmetric key algorithm.
  */
-public final class CryptoFactory {
+public interface PrivateKey {
 
   /**
-   * Private constructor for Factory class.
-   */
-  private CryptoFactory() { }
-
-  /**
-   * Create a Context of the specific type.
+   * Return the algorithm name for this key.
    *
-   * @param algorithmName The name of the algorithm.
-   * @return A Context.
+   * @return String algorithm name.
    */
-  public static Context createContext(final String algorithmName) {
+  String getAlgorithmName();
 
-    Context context = null;
+  /**
+   * Return the PrivateKey, hex encoded.
+   *
+   * @return String Hex encoded private key
+   */
+  String hex();
 
-    if (algorithmName.equals("secp256k1")) {
-      context = new Secp256k1Context();
-    } else {
-      throw new RuntimeException("During call to createContext, Algorithm is not implemented");
-    }
-
-    return context;
-  }
-
+  /**
+   * Return the bytes underlying the PrivateKey.
+   *
+   * @return byte[]
+   */
+  byte[] getBytes();
 }
