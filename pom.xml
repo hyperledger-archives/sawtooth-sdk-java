@@ -20,10 +20,35 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>sawtooth</groupId>
+    <groupId>org.hyperledger.sawtooth</groupId>
     <artifactId>sawtooth-sdk-java</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
+
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>"Java SDK for interacting with the Sawtooth distributed ledger framework"</description>
+    <url>https://sawtooth.hyperledger.org</url>
+
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Sawtooth Developers</name>
+            <email>sawtooth@lists.hyperledger.org</email>
+            <organizationUrl>https://sawtooth.hyperledger.org</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/hyperledger/sawtooth-sdk-java.git</connection>
+        <developerConnection>scm:git:ssh://github.com:hyperledger/sawtooth-sdk-java.git</developerConnection>
+        <url>http://github.com/hyperledger/sawtooth-sdk-java/tree/master</url>
+    </scm>
 
     <modules>
         <module>sawtooth-sdk-protos</module>
