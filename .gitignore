@@ -16,7 +16,7 @@
 # Exclude IDE and Editor files
 /.idea/
 *.sublime*
-
+*.iml
 
 /examples/intkey_java/dependency-reduced-pom.xml
 /examples/intkey_java/target/
@@ -24,4 +24,10 @@
 /examples/xo_java/target/
 /target/
 
+/sawtooth-sdk-signing/*.iml
+/sawtooth-sdk-signing/target/
+/sawtooth-sdk-protos/*.iml
+/sawtooth-sdk-protos/target/
+/sawtooth-sdk-transaction-processor/*.iml
+/sawtooth-sdk-transaction-processor/target/
 *.batch
