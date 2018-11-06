@@ -12,18 +12,18 @@
  limitations under the License.
 ------------------------------------------------------------------------------*/
 
-package sawtooth.sdk.client.signing.test;
+package sawtooth.sdk.signing.test;
 
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Utils;
 import org.junit.Assert;
 import org.junit.Test;
-import sawtooth.sdk.client.signing.PrivateKey;
-import sawtooth.sdk.client.signing.PublicKey;
-import sawtooth.sdk.client.signing.Secp256k1Context;
-import sawtooth.sdk.client.signing.Secp256k1PrivateKey;
-import sawtooth.sdk.client.signing.Secp256k1PublicKey;
-import sawtooth.sdk.client.signing.Signer;
+import sawtooth.sdk.signing.PrivateKey;
+import sawtooth.sdk.signing.PublicKey;
+import sawtooth.sdk.signing.Secp256k1Context;
+import sawtooth.sdk.signing.Secp256k1PrivateKey;
+import sawtooth.sdk.signing.Secp256k1PublicKey;
+import sawtooth.sdk.signing.Signer;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;

@@ -12,7 +12,7 @@
  limitations under the License.
 ------------------------------------------------------------------------------*/
 
-package sawtooth.sdk.client.signing;
+package sawtooth.sdk.signing;
 
 
 import org.bitcoinj.core.Utils;
