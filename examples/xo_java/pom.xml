@@ -74,7 +74,7 @@
     </build>
     <dependencies>
         <dependency>
-            <groupId>sawtooth</groupId>
+            <groupId>org.hyperledger.sawtooth</groupId>
             <artifactId>sawtooth-sdk-transaction-processor</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>

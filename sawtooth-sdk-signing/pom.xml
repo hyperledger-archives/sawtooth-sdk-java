@@ -20,13 +20,24 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>sawtooth</groupId>
+        <groupId>org.hyperledger.sawtooth</groupId>
         <artifactId>sawtooth-sdk-java</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>sawtooth-sdk-signing</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+
+    <name>${project.parent.groupId}:${project.artifactId}</name>
+    <description>"Java SDK cryptographic tools for signing and verifying header signatures in the Sawtooth distributed ledger"</description>
+    <url>https://sawtooth.hyperledger.org</url>
+
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
 
     <dependencies>
         <dependency>
