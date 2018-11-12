@@ -22,11 +22,11 @@
     <parent>
         <groupId>org.hyperledger.sawtooth</groupId>
         <artifactId>sawtooth-sdk-java</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>v0.1.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>sawtooth-sdk-protos</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>v0.1.2-SNAPSHOT</version>
 
     <name>${project.parent.groupId}:${project.artifactId}</name>
     <description>"Java classes generated from Sawtooth proto definition files, to interact with the component, consensus, and other validator interfaces"</description>
