@@ -1,6 +1,7 @@
 package io.bitwise.sawtooth_xo.state
 
 
+import android.net.Uri
 import io.bitwise.sawtooth_xo.state.rest_api.SawtoothRestApi
 import retrofit2.Retrofit
 import io.bitwise.sawtooth_xo.state.rest_api.BatchListResponse
@@ -15,6 +16,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import sawtooth.sdk.signing.Secp256k1Context
 import sawtooth.sdk.signing.Signer
 import com.google.protobuf.ByteString
+import io.bitwise.sawtooth_xo.state.rest_api.BatchStatusResponse
 import java.security.MessageDigest
 import sawtooth.sdk.protobuf.*
 import java.util.UUID
@@ -97,6 +99,7 @@ class XoState {
             override fun onResponse(call: Call<BatchListResponse>, response: Response<BatchListResponse>) {
                 if(response.body() != null) {
                     Log.d("XO.State", response.body().toString())
+                    waitForBatch(response.body()?.link, 5)
                 } else {
                     Log.d("XO.State", response.toString())
                 }
@@ -106,6 +109,26 @@ class XoState {
                 call.cancel()
             }
         })
+    }
+
+    private fun waitForBatch(batchLink: String?, wait: Int) {
+        val uri = Uri.parse(batchLink)
+        val batchId = uri.getQueryParameter("id")
+        if(batchId != null) {
+            val call1 = service?.getBatchStatus(batchId, wait)
+            call1?.enqueue(object : Callback<BatchStatusResponse> {
+                override fun onResponse(call: Call<BatchStatusResponse>, response: Response<BatchStatusResponse>) {
+                    Log.d("XO.State", response.body().toString())
+                }
+                override fun onFailure(call: Call<BatchStatusResponse>, t: Throwable) {
+                    Log.d("XO.State", t.toString())
+                    call.cancel()
+                }
+            })
+        } else {
+            Log.d("XO.State", "Failed to retrieve batch id. Cannot request batch status.")
+        }
+
     }
 
     private fun hash(input: String) : String{
