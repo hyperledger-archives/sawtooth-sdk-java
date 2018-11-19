@@ -1,6 +1,6 @@
 package io.bitwise.sawtooth_xo.state
 
-
+import android.content.Context
 import android.net.Uri
 import io.bitwise.sawtooth_xo.state.rest_api.SawtoothRestApi
 import retrofit2.Retrofit
@@ -10,6 +10,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import android.util.Log
 import com.google.common.io.BaseEncoding
+import android.widget.Toast
 import okhttp3.MediaType
 import okhttp3.RequestBody
 import retrofit2.converter.gson.GsonConverterFactory
@@ -40,10 +41,10 @@ class XoState {
         signer = Signer(context, privateKey)
     }
 
-    fun createGame(gameName: String) {
+    fun createGame(gameName: String, context: Context) {
         val createGameTransaction = makeTransaction(gameName, "create", null)
         val batch = makeBatch(arrayOf(createGameTransaction))
-        sendRequest(batch)
+        sendRequest(batch, context)
     }
 
     private fun makeTransaction(gameName: String, action: String, space: String?): Transaction {
@@ -74,7 +75,7 @@ class XoState {
     private fun makeBatch(transactions: Array<Transaction>): Batch {
         val batchHeader = BatchHeader.newBuilder()
             .setSignerPublicKey(signer?.publicKey?.hex())
-            .addAllTransactionIds(transactions.map({transaction -> transaction.headerSignature  }))
+            .addAllTransactionIds(transactions.map { transaction -> transaction.headerSignature  })
             .build()
 
         val batch_signature = signer?.sign(batchHeader.toByteArray())
@@ -86,7 +87,7 @@ class XoState {
             .build()
     }
 
-    private fun sendRequest(batch: Batch) {
+    private fun sendRequest(batch: Batch, context: Context) {
         val batchList = BatchList.newBuilder()
             .addBatches(batch)
             .build()
@@ -99,19 +100,23 @@ class XoState {
             override fun onResponse(call: Call<BatchListResponse>, response: Response<BatchListResponse>) {
                 if(response.body() != null) {
                     Log.d("XO.State", response.body().toString())
-                    waitForBatch(response.body()?.link, 5)
+                    Toast.makeText(context, "Transaction submitted", Toast.LENGTH_SHORT).show()
+
+                    waitForBatch(response.body()?.link, 5, context)
                 } else {
+                    Toast.makeText(context, "Failed to submit transaction", Toast.LENGTH_LONG).show()
                     Log.d("XO.State", response.toString())
                 }
             }
             override fun onFailure(call: Call<BatchListResponse>, t: Throwable) {
                 Log.d("XO.State", t.toString())
+                Toast.makeText(context, "Failed to submit transaction", Toast.LENGTH_LONG).show()
                 call.cancel()
             }
         })
     }
 
-    private fun waitForBatch(batchLink: String?, wait: Int) {
+    private fun waitForBatch(batchLink: String?, wait: Int, context: Context) {
         val uri = Uri.parse(batchLink)
         val batchId = uri.getQueryParameter("id")
         if(batchId != null) {
@@ -119,14 +124,18 @@ class XoState {
             call1?.enqueue(object : Callback<BatchStatusResponse> {
                 override fun onResponse(call: Call<BatchStatusResponse>, response: Response<BatchStatusResponse>) {
                     Log.d("XO.State", response.body().toString())
+                    Toast.makeText(context, "Batch status: " + response.body()?.data?.get(0)?.status , Toast.LENGTH_LONG).show()
+
                 }
                 override fun onFailure(call: Call<BatchStatusResponse>, t: Throwable) {
                     Log.d("XO.State", t.toString())
+                    Toast.makeText(context, "Failed to get batch status", Toast.LENGTH_LONG).show()
                     call.cancel()
                 }
             })
         } else {
             Log.d("XO.State", "Failed to retrieve batch id. Cannot request batch status.")
+            Toast.makeText(context, "Failed to get batch status", Toast.LENGTH_LONG).show()
         }
 
     }
