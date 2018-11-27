@@ -8,11 +8,13 @@
         tools:context=".MainActivity">
 
     <android.support.design.widget.FloatingActionButton
-            android:clickable="true" app:srcCompat="@drawable/round_add_white_48dp"
+            android:clickable="true"
+            android:src="@drawable/baseline_add_48"
             android:id="@+id/newGameFloatingButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end|bottom"
+            android:tint="@color/fab_icon"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             android:focusable="true"
