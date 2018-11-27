@@ -14,7 +14,7 @@ class GameViewModel : ViewModel(){
         m.value = input
         m
     }
-    
+
     init {
         state.getState(true)
     }
