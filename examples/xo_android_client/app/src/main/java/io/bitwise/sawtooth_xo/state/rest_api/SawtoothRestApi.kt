@@ -14,4 +14,7 @@ interface SawtoothRestApi {
 
     @GET("/batch_statuses")
     fun getBatchStatus(@Query("id") batch_id: String, @Query("wait") wait: Int): Call<BatchStatusResponse>
+
+    @GET("/state")
+    fun getState(@Query("address") address: String): Call<StateResponse>
 }
