@@ -6,14 +6,16 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.EditText
 import android.widget.Toast
-import io.bitwise.sawtooth_xo.state.XoState
+import io.bitwise.sawtooth_xo.state.rest_api.XORequestHandler
 
 class GameBoardActivity : AppCompatActivity() {
+    private var requestHandler: XORequestHandler? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_game_board)
         setSupportActionBar(findViewById(R.id.action_menu))
+        requestHandler = XORequestHandler(getPrivateKey(this))
 
     }
 
@@ -24,14 +26,13 @@ class GameBoardActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         R.id.send_transaction -> {
-            val state =  XoState()
             val editText = findViewById<EditText>(R.id.gameName)
             val message = editText.text.toString()
             if(message.isBlank()){
                 Toast.makeText(applicationContext, "Please, enter a name for the game.", Toast.LENGTH_LONG).show()
             }
             else {
-                state.createGame(message, applicationContext)
+                requestHandler?.createGame(message, applicationContext)
             }
             true
         }
@@ -42,7 +43,3 @@ class GameBoardActivity : AppCompatActivity() {
         }
     }
 }
-
-
-
-

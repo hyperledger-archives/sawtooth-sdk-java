@@ -1,35 +1,28 @@
-package io.bitwise.sawtooth_xo.state
+package io.bitwise.sawtooth_xo.state.rest_api
 
 import android.content.Context
 import android.net.Uri
-import io.bitwise.sawtooth_xo.state.rest_api.SawtoothRestApi
-import retrofit2.Retrofit
-import io.bitwise.sawtooth_xo.state.rest_api.BatchListResponse
+import android.util.Log
+import android.widget.Toast
+import com.google.protobuf.ByteString
+import okhttp3.MediaType
+import okhttp3.RequestBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import android.util.Log
-import com.google.common.io.BaseEncoding
-import android.widget.Toast
-import okhttp3.MediaType
-import okhttp3.RequestBody
+import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import sawtooth.sdk.protobuf.*
 import sawtooth.sdk.signing.Secp256k1Context
 import sawtooth.sdk.signing.Signer
-import com.google.protobuf.ByteString
-import io.bitwise.sawtooth_xo.models.Game
-import io.bitwise.sawtooth_xo.state.rest_api.BatchStatusResponse
-import io.bitwise.sawtooth_xo.state.rest_api.StateResponse
-import java.security.MessageDigest
-import sawtooth.sdk.protobuf.*
 import java.util.UUID
-import android.arch.lifecycle.MutableLiveData
+import io.bitwise.sawtooth_xo.state.makeGameAddress
+import io.bitwise.sawtooth_xo.state.hash
+import sawtooth.sdk.signing.PrivateKey
 
-
-class XoState {
+class XORequestHandler(privateKey : PrivateKey) {
     private var service: SawtoothRestApi? = null
     private var signer: Signer? = null
-    var games : MutableLiveData<List<Game>> = MutableLiveData()
 
     init {
         val retrofit = Retrofit.Builder()
@@ -40,7 +33,6 @@ class XoState {
         service = retrofit.create<SawtoothRestApi>(SawtoothRestApi::class.java)
 
         val context = Secp256k1Context()
-        val privateKey = context.newRandomPrivateKey()
         signer = Signer(context, privateKey)
     }
 
@@ -48,30 +40,7 @@ class XoState {
         val createGameTransaction = makeTransaction(gameName, "create", null)
         val batch = makeBatch(arrayOf(createGameTransaction))
         sendRequest(batch, context)
-    }
 
-    fun  getState(update: Boolean)  {
-        val resp = arrayListOf<Game>()
-        if(update) {
-            service?.getState(transactionFamilyPrefix())?.enqueue(object : Callback<StateResponse> {
-                override fun onResponse(call: Call<StateResponse>, response: Response<StateResponse>) {
-                    if(response.body() != null) {
-                        response.body()?.data?.map{ entry ->
-                            resp.add(Game(String(BaseEncoding.base64().decode(entry.data))))
-                        }
-                        games.value = resp.sortedBy { it.name?.toLowerCase() }
-
-                        Log.d("XO.State", "Updated game list")
-                    } else {
-                        Log.d("XO.State", response.toString())
-                    }
-                }
-                override fun onFailure(call: Call<StateResponse>, t: Throwable) {
-                    Log.d("XO.State", t.toString())
-                    call.cancel()
-                }
-            })
-        }
     }
 
     private fun makeTransaction(gameName: String, action: String, space: String?): Transaction {
@@ -105,12 +74,12 @@ class XoState {
             .addAllTransactionIds(transactions.map { transaction -> transaction.headerSignature  })
             .build()
 
-        val batch_signature = signer?.sign(batchHeader.toByteArray())
+        val batchSignature = signer?.sign(batchHeader.toByteArray())
 
         return Batch.newBuilder()
             .setHeader(batchHeader.toByteString())
             .addAllTransactions(transactions.asIterable())
-            .setHeaderSignature(batch_signature)
+            .setHeaderSignature(batchSignature)
             .build()
     }
 
@@ -166,22 +135,4 @@ class XoState {
         }
 
     }
-
-    private fun transactionFamilyPrefix() : String{
-        return hash("xo").substring(0,6)
-    }
-
-    private fun hash(input: String) : String{
-        val digest = MessageDigest.getInstance("SHA-512")
-        digest.reset()
-        digest.update(input.toByteArray())
-        return BaseEncoding.base16().lowerCase().encode(digest.digest())
-    }
-
-    private fun makeGameAddress(gameName: String) : String {
-        val xoPrefix = transactionFamilyPrefix()
-        val gameAddress = hash(gameName).substring(0, 64)
-        return xoPrefix + gameAddress
-    }
-
 }
