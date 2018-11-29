@@ -3,4 +3,7 @@
     <string name="enterGameName">Enter Game Name</string>
     <string name="sendBtn">Send</string>
     <string name="refreshBtn">Refresh</string>
+    <string name="PlayTab">Play</string>
+    <string name="WatchTab">Watch</string>
+    <string name="HistoryTab">History</string>
 </resources>

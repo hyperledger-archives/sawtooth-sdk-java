@@ -51,12 +51,47 @@ class GameListFragment : Fragment() {
             model?.games?.observe(this, Observer<List<Game>>{ games ->
                 if(games != null) {
                     val adapter = view.adapter as GameListRecyclerViewAdapter
-                    adapter.updateData(games)
+                    adapter.updateData(filterGameList(games))
                 }
             })
         }
         return view
     }
+
+    private fun filterGameList(games: List<Game>) : List<Game> {
+        val filter = arguments?.getString("listFilter")
+        val publicKey = arguments?.getString("publicKey")
+        when {
+            filter.equals(getString(R.string.PlayTab)) -> {
+                return games.filter { game -> (userCanJoinGame(game, publicKey) ||
+                        userIsInGame(game, publicKey)) && !gameIsOver(game.gameState) }
+            }
+            filter.equals(getString(R.string.WatchTab)) -> {
+                return games.filter { game -> !userIsInGame(game, publicKey) && !userCanJoinGame(game, publicKey)
+                        && !gameIsOver(game.gameState)}
+            }
+            filter.equals(getString(R.string.HistoryTab)) -> {
+                return games.filter { game -> gameIsOver(game.gameState) }
+            }
+        }
+
+        return arrayListOf()
+
+    }
+
+    private fun gameIsOver(gameState: String) : Boolean{
+        return gameState == "P1-WIN" ||  gameState == "P2-WIN" ||  gameState == "TIE"
+    }
+
+    private fun userIsInGame(game: Game, publicKey: String?) : Boolean {
+        return game.playerKey1 == publicKey || game.playerKey2 == publicKey
+    }
+
+    private fun userCanJoinGame(game: Game, publicKey: String?) : Boolean {
+        return  game.playerKey1.isBlank() || (game.playerKey2.isBlank() && game.playerKey1 != publicKey)
+    }
+
+
 
     override fun onAttach(context: Context) {
         super.onAttach(context)

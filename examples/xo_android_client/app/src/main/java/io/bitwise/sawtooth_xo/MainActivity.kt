@@ -5,11 +5,14 @@ import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
+import android.support.design.widget.TabLayout
+import android.support.v4.view.ViewPager
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import io.bitwise.sawtooth_xo.adapters.PagerAdapter
 import io.bitwise.sawtooth_xo.models.Game
 import io.bitwise.sawtooth_xo.viewmodels.GameViewModel
-
 
 class MainActivity : AppCompatActivity(),  GameListFragment.OnListFragmentInteractionListener{
 
@@ -18,14 +21,36 @@ class MainActivity : AppCompatActivity(),  GameListFragment.OnListFragmentIntera
 
         setContentView(R.layout.activity_main)
         setSupportActionBar(findViewById(R.id.list_view_toolbar))
+        val viewPager = findViewById<ViewPager>(R.id.pager)
+        setupViewPager(viewPager)
+        val tabs = findViewById<View>(R.id.tabs) as TabLayout
+        tabs.setupWithViewPager(viewPager)
 
 
         val fab: FloatingActionButton = findViewById(R.id.newGameFloatingButton)
-        fab.setOnClickListener { _ ->
+        fab.setOnClickListener {
             val intent = Intent(this, GameBoardActivity::class.java)
             startActivity(intent)
         }
+    }
 
+    private fun setupViewPager(viewPager: ViewPager) {
+        val adapter = PagerAdapter(supportFragmentManager)
+        val privateKey = getPrivateKey(this)
+        val publicKey = getPublicKey(this, privateKey)
+        adapter.addFragment(setUpFragment(getString(R.string.PlayTab), publicKey),  getString(R.string.PlayTab))
+        adapter.addFragment(setUpFragment(getString(R.string.WatchTab), publicKey), getString(R.string.WatchTab))
+        adapter.addFragment(setUpFragment(getString(R.string.HistoryTab), publicKey), getString(R.string.HistoryTab))
+        viewPager.adapter = adapter
+    }
+
+    private fun setUpFragment(tabName: String, publicKey: String) : GameListFragment {
+        val args = Bundle()
+        args.putString("listFilter", tabName)
+        args.putString("publicKey", publicKey)
+        var frag = GameListFragment()
+        frag.arguments = args
+        return frag
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
