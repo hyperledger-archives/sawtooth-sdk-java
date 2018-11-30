@@ -2,6 +2,7 @@ package io.bitwise.sawtooth_xo
 
 import android.app.Activity
 import android.content.Context
+import android.support.v7.preference.PreferenceManager
 import sawtooth.sdk.signing.PrivateKey
 import sawtooth.sdk.signing.Secp256k1Context
 import sawtooth.sdk.signing.Secp256k1PrivateKey
@@ -25,7 +26,7 @@ fun getPrivateKey(activity: Activity) : Secp256k1PrivateKey {
 fun getPublicKey(activity: Activity, privateKey: PrivateKey) : String {
     var sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
     var publicKey = sharedPref.getString(sharedPreferencePublicKey, "")
-    if(publicKey == "") {
+    if(publicKey == "" || publicKey == null) {
         publicKey = generatePublicKey(privateKey)
         with (sharedPref.edit()) {
             putString(sharedPreferencePublicKey, publicKey)
@@ -43,4 +44,9 @@ private fun generatePrivateKey() : String {
 private fun generatePublicKey(privateKey: PrivateKey) : String {
     val context = Secp256k1Context()
     return context.getPublicKey(privateKey).hex()
+}
+
+fun getRestApiUrl(activity: Activity, settingsKey : String, urlDefaultValue: String) : String {
+    var sharedPref = PreferenceManager.getDefaultSharedPreferences(activity)
+    return sharedPref.getString(settingsKey, urlDefaultValue) ?: urlDefaultValue
 }

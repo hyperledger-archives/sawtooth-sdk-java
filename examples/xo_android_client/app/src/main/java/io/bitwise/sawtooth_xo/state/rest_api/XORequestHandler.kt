@@ -20,27 +20,37 @@ import io.bitwise.sawtooth_xo.state.makeGameAddress
 import io.bitwise.sawtooth_xo.state.hash
 import sawtooth.sdk.signing.PrivateKey
 
-class XORequestHandler(privateKey : PrivateKey) {
+class XORequestHandler(private var restApiURL: String, privateKey : PrivateKey) {
     private var service: SawtoothRestApi? = null
     private var signer: Signer? = null
 
     init {
-        val retrofit = Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:9708")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-
-        service = retrofit.create<SawtoothRestApi>(SawtoothRestApi::class.java)
-
+        buildService()
         val context = Secp256k1Context()
         signer = Signer(context, privateKey)
     }
 
-    fun createGame(gameName: String, context: Context) {
+    fun createGame(gameName: String, context: Context, restApiURL: String) {
+        checkURLChanged(restApiURL)
         val createGameTransaction = makeTransaction(gameName, "create", null)
         val batch = makeBatch(arrayOf(createGameTransaction))
         sendRequest(batch, context)
+    }
 
+    private fun checkURLChanged(url: String) {
+        if(restApiURL != url) {
+            restApiURL = url
+            buildService()
+        }
+    }
+
+    private fun buildService() {
+        val retrofit = Retrofit.Builder()
+            .baseUrl(restApiURL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        service = retrofit.create<SawtoothRestApi>(SawtoothRestApi::class.java)
     }
 
     private fun makeTransaction(gameName: String, action: String, space: String?): Transaction {

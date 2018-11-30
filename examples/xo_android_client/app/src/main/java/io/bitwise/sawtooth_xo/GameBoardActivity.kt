@@ -15,8 +15,11 @@ class GameBoardActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_game_board)
         setSupportActionBar(findViewById(R.id.action_menu))
-        requestHandler = XORequestHandler(getPrivateKey(this))
-
+        requestHandler = XORequestHandler(
+            getRestApiUrl(this,
+                getString(R.string.rest_api_settings_key),
+                getString(R.string.default_rest_api_address)),
+            getPrivateKey(this))
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -32,7 +35,10 @@ class GameBoardActivity : AppCompatActivity() {
                 Toast.makeText(applicationContext, "Please, enter a name for the game.", Toast.LENGTH_LONG).show()
             }
             else {
-                requestHandler?.createGame(message, applicationContext)
+                requestHandler?.createGame(message, applicationContext,
+                    getRestApiUrl(this,
+                        getString(R.string.rest_api_settings_key),
+                        getString(R.string.default_rest_api_address)))
             }
             true
         }
