@@ -6,4 +6,8 @@
             android:title="@string/refreshBtn"
             app:showAsAction="ifRoom"/>
 
+    <item
+            android:id="@+id/settings"
+            android:title="@string/SettingsBtn"
+            app:showAsAction="withText|never"/>
 </menu>

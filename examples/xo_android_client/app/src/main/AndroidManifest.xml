@@ -12,8 +12,9 @@
             android:supportsRtl="true"
             android:theme="@style/AppTheme"
             android:usesCleartextTraffic="true">
-        <activity android:name=".MainActivity"
-                  android:label="List Games">
+        <activity
+                android:name=".MainActivity"
+                android:label="List Games">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
@@ -22,14 +23,21 @@
         </activity>
         <activity
                 android:name=".GameBoardActivity"
-                android:parentActivityName=".MainActivity"
-                android:label="Game Board">
-
+                android:label="Game Board"
+                android:parentActivityName=".MainActivity">
 
             <!-- The meta-data tag is required if you support API level 15 and lower -->
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
                     android:value=".MainActivity"/>
+        </activity>
+        <activity
+                android:name=".SettingsActivity"
+                android:label="@string/title_activity_settings"
+                android:parentActivityName=".MainActivity">
+            <meta-data
+                    android:name="android.support.PARENT_ACTIVITY"
+                    android:value="io.bitwise.sawtooth_xo.MainActivity"/>
         </activity>
     </application>
 

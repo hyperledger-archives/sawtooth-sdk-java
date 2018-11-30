@@ -7,6 +7,10 @@
         <item name="colorPrimaryDark">#2b3886</item>
         <!-- Dark Indigo -->
         <item name="colorAccent">#247bff</item>
+        <!--<item name="preferenceTheme">@style/PreferenceThemeOverlay</item>-->
+        <item name="preferenceTheme">
+            @style/PreferenceThemeOverlay.v14.Material
+        </item>
         <!-- Blue -->
     </style>
     <style name="AppTheme" parent="AppTheme.Base"></style>

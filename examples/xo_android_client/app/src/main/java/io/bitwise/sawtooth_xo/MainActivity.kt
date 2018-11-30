@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
 import android.support.design.widget.TabLayout
 import android.support.v4.view.ViewPager
+import android.support.v7.preference.PreferenceManager
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -25,7 +26,7 @@ class MainActivity : AppCompatActivity(),  GameListFragment.OnListFragmentIntera
         setupViewPager(viewPager)
         val tabs = findViewById<View>(R.id.tabs) as TabLayout
         tabs.setupWithViewPager(viewPager)
-
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
         val fab: FloatingActionButton = findViewById(R.id.newGameFloatingButton)
         fab.setOnClickListener {
@@ -66,6 +67,11 @@ class MainActivity : AppCompatActivity(),  GameListFragment.OnListFragmentIntera
         R.id.refresh_list -> {
             val model = ViewModelProviders.of(this).get(GameViewModel::class.java)
             model.loadGames(true)
+            true
+        }
+        R.id.settings -> {
+            val intent = Intent(this, SettingsActivity::class.java)
+            startActivity(intent)
             true
         }
         else -> {

@@ -6,4 +6,11 @@
     <string name="PlayTab">Play</string>
     <string name="WatchTab">Watch</string>
     <string name="HistoryTab">History</string>
+    <string name="title_activity_settings">Settings</string>
+    <string name="SettingsBtn">Settings</string>
+    <string name="rest_api_settings_key" translatable="false">rest_api_settings</string>
+    <string name="default_rest_api_address" translatable="false">http://10.0.2.2:9708</string>
+    <string name="rest_api_settings_title">REST API</string>
+    <string name="rest_api_settings_summary">Address for the Sawtooth REST API</string>
+    <string name="rest_api_settings_dialog_message">Enter REST API address</string>
 </resources>
