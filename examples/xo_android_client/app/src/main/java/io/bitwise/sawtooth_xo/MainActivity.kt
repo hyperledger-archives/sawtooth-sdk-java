@@ -39,9 +39,9 @@ class MainActivity : AppCompatActivity(),  GameListFragment.OnListFragmentIntera
         val adapter = PagerAdapter(supportFragmentManager)
         val privateKey = getPrivateKey(this)
         val publicKey = getPublicKey(this, privateKey)
-        adapter.addFragment(setUpFragment(getString(R.string.PlayTab), publicKey),  getString(R.string.PlayTab))
-        adapter.addFragment(setUpFragment(getString(R.string.WatchTab), publicKey), getString(R.string.WatchTab))
-        adapter.addFragment(setUpFragment(getString(R.string.HistoryTab), publicKey), getString(R.string.HistoryTab))
+        adapter.addFragment(setUpFragment(getString(R.string.play_tab), publicKey),  getString(R.string.play_tab))
+        adapter.addFragment(setUpFragment(getString(R.string.watch_tab), publicKey), getString(R.string.watch_tab))
+        adapter.addFragment(setUpFragment(getString(R.string.history_tab), publicKey), getString(R.string.history_tab))
         viewPager.adapter = adapter
     }
 

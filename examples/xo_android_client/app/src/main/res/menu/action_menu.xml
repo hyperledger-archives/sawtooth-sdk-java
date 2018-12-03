@@ -3,7 +3,7 @@
     <item
             android:id="@+id/send_transaction"
             android:icon="@drawable/baseline_send_48"
-            android:title="@string/sendBtn"
+            android:title="@string/send_btn"
             app:showAsAction="ifRoom"/>
 
 </menu>

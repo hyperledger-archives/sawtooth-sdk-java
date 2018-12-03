@@ -1,13 +1,13 @@
 <resources>
     <string name="app_name">Sawtooth XO</string>
-    <string name="enterGameName">Enter Game Name</string>
-    <string name="sendBtn">Send</string>
-    <string name="refreshBtn">Refresh</string>
-    <string name="PlayTab">Play</string>
-    <string name="WatchTab">Watch</string>
-    <string name="HistoryTab">History</string>
+    <string name="enter_game_name">Enter Game Name</string>
+    <string name="send_btn">Send</string>
+    <string name="refresh_btn">Refresh</string>
+    <string name="play_tab">Play</string>
+    <string name="watch_tab">Watch</string>
+    <string name="history_tab">History</string>
     <string name="title_activity_settings">Settings</string>
-    <string name="SettingsBtn">Settings</string>
+    <string name="settings_btn">Settings</string>
     <string name="rest_api_settings_key" translatable="false">rest_api_settings</string>
     <string name="default_rest_api_address" translatable="false">http://10.0.2.2:9708</string>
     <string name="rest_api_settings_title">REST API</string>

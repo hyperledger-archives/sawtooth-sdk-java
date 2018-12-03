@@ -3,11 +3,10 @@
     <item
             android:id="@+id/refresh_list"
             android:icon="@drawable/baseline_refresh_48"
-            android:title="@string/refreshBtn"
+            android:title="@string/refresh_btn"
             app:showAsAction="ifRoom"/>
 
     <item
             android:id="@+id/settings"
-            android:title="@string/SettingsBtn"
-            app:showAsAction="withText|never"/>
+            app:showAsAction="withText|never" android:title="@string/settings_btn"/>
 </menu>

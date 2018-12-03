@@ -62,15 +62,15 @@ class GameListFragment : Fragment() {
         val filter = arguments?.getString("listFilter")
         val publicKey = arguments?.getString("publicKey")
         when {
-            filter.equals(getString(R.string.PlayTab)) -> {
+            filter.equals(getString(R.string.play_tab)) -> {
                 return games.filter { game -> (userCanJoinGame(game, publicKey) ||
                         userIsInGame(game, publicKey)) && !gameIsOver(game.gameState) }
             }
-            filter.equals(getString(R.string.WatchTab)) -> {
+            filter.equals(getString(R.string.watch_tab)) -> {
                 return games.filter { game -> !userIsInGame(game, publicKey) && !userCanJoinGame(game, publicKey)
                         && !gameIsOver(game.gameState)}
             }
-            filter.equals(getString(R.string.HistoryTab)) -> {
+            filter.equals(getString(R.string.history_tab)) -> {
                 return games.filter { game -> gameIsOver(game.gameState) }
             }
         }
