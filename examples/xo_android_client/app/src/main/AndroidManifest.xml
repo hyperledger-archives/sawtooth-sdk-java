@@ -22,8 +22,8 @@
             </intent-filter>
         </activity>
         <activity
-                android:name=".GameBoardActivity"
-                android:label="Game Board"
+                android:name=".CreateGameActivity"
+                android:label="Create Game"
                 android:parentActivityName=".MainActivity">
 
             <!-- The meta-data tag is required if you support API level 15 and lower -->

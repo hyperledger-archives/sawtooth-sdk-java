@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity(),  GameListFragment.OnListFragmentIntera
 
         val fab: FloatingActionButton = findViewById(R.id.newGameFloatingButton)
         fab.setOnClickListener {
-            val intent = Intent(this, GameBoardActivity::class.java)
+            val intent = Intent(this, CreateGameActivity::class.java)
             startActivity(intent)
         }
     }
