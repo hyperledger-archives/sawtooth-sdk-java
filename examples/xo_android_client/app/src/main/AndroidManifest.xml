@@ -39,6 +39,15 @@
                     android:name="android.support.PARENT_ACTIVITY"
                     android:value="io.bitwise.sawtooth_xo.MainActivity"/>
         </activity>
+        <activity
+            android:name=".GameBoardActivity"
+            android:label="Game Board"
+            android:parentActivityName=".MainActivity">
+
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity"/>
+        </activity>
     </application>
 
 </manifest>

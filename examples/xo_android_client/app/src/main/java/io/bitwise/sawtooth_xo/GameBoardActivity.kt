@@ -2,44 +2,42 @@ package io.bitwise.sawtooth_xo
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
-import android.widget.EditText
-import android.widget.Toast
-import io.bitwise.sawtooth_xo.state.rest_api.XORequestHandler
+import android.view.*
+import android.widget.TextView
+import io.bitwise.sawtooth_xo.models.Game
+import com.google.gson.Gson
+
 
 class GameBoardActivity : AppCompatActivity() {
-    private var requestHandler: XORequestHandler? = null
+
+    var game: Game? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val intent = this.intent
+
+        val displayGame = getGameObject(intent.getStringExtra("selectedGame"))
+        this.game = displayGame
+
         setContentView(R.layout.activity_game_board)
-        setSupportActionBar(findViewById(R.id.action_menu))
-        requestHandler = XORequestHandler(
-            getRestApiUrl(this,
-                getString(R.string.rest_api_settings_key),
-                getString(R.string.default_rest_api_address)),
-            getPrivateKey(this))
+        setSupportActionBar(findViewById(R.id.game_board_menu))
+
+        updateGameInformation(displayGame)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.action_menu, menu)
+        menuInflater.inflate(R.menu.game_board_menu, menu)
         return true
     }
 
-    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
-        R.id.send_transaction -> {
-            val editText = findViewById<EditText>(R.id.gameName)
-            val message = editText.text.toString()
-            if(message.isBlank()){
-                Toast.makeText(applicationContext, "Please, enter a name for the game.", Toast.LENGTH_LONG).show()
-            }
-            else {
-                requestHandler?.createGame(message, applicationContext,
-                    getRestApiUrl(this,
-                        getString(R.string.rest_api_settings_key),
-                        getString(R.string.default_rest_api_address)))
-            }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
+        R.id.refresh_board -> {
+            true
+
+        }
+        R.id.game_board_information -> {
             true
         }
         else -> {
@@ -47,5 +45,17 @@ class GameBoardActivity : AppCompatActivity() {
             // Invoke the superclass to handle it.
             super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun updateGameInformation(item: Game) {
+        val boardName: TextView = this.findViewById(R.id.game_board_name)
+        boardName.text = item.name
+        val gameState: TextView = this.findViewById(R.id.game_board_state)
+        gameState.text = item.gameState
+    }
+
+    private fun getGameObject(game: String): Game {
+        val gson = Gson()
+        return gson.fromJson<Game>(game, Game::class.java)
     }
 }

@@ -1,0 +1,9 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:title="Item" app:showAsAction="always" android:id="@+id/game_board_information"
+          android:icon="@android:drawable/ic_menu_info_details"/>
+    <item
+            android:id="@+id/refresh_board"
+            android:icon="@drawable/baseline_refresh_48"
+            app:showAsAction="always" android:title="@string/refresh_btn"/>
+</menu>

@@ -13,4 +13,7 @@
     <string name="rest_api_settings_title">REST API</string>
     <string name="rest_api_settings_summary">Address for the Sawtooth REST API</string>
     <string name="rest_api_settings_dialog_message">Enter REST API address</string>
+    <string name="default_game_board_name">Game Board</string>
+    <string name="game_board_information">Game Board Information</string>
+    <string name="game_board_state">Game Board State</string>
 </resources>
