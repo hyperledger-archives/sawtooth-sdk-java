@@ -2,6 +2,7 @@ package io.bitwise.sawtooth_xo
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v7.app.AlertDialog
 import android.view.*
 import android.widget.TextView
 import io.bitwise.sawtooth_xo.models.Game
@@ -38,6 +39,7 @@ class GameBoardActivity : AppCompatActivity() {
 
         }
         R.id.game_board_information -> {
+            showAlertDialog(game)
             true
         }
         else -> {
@@ -57,5 +59,25 @@ class GameBoardActivity : AppCompatActivity() {
     private fun getGameObject(game: String): Game {
         val gson = Gson()
         return gson.fromJson<Game>(game, Game::class.java)
+    }
+
+    private fun showAlertDialog(item: Game?) {
+        val buildDialog = AlertDialog.Builder(this)
+
+        if (item == null) {
+            buildDialog.setMessage("No valid game")
+            buildDialog.setPositiveButton("Ok", null)
+        }
+        else {
+            createDialog(buildDialog, item)
+        }
+
+        buildDialog.show()
+    }
+
+    private fun createDialog(builder: AlertDialog.Builder, item: Game) {
+        builder.setTitle(item.name)
+        val message = getString(R.string.player_pub_keys, item.playerKey1, item.playerKey2)
+        builder.setMessage(message)
     }
 }

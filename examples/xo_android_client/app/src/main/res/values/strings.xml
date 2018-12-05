@@ -16,4 +16,5 @@
     <string name="default_game_board_name">Game Board</string>
     <string name="game_board_information">Game Board Information</string>
     <string name="game_board_state">Game Board State</string>
+    <string name="player_pub_keys">Player 1 public key: %s\nPlayer 2 public key: %s\n</string>
 </resources>
