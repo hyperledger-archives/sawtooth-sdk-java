@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="io.bitwise.sawtooth_xo">
+          package="bitwiseio.sawtooth.xo">
 
     <uses-permission android:name="android.permission.INTERNET"/>
 
@@ -13,8 +13,8 @@
             android:theme="@style/AppTheme"
             android:usesCleartextTraffic="true">
         <activity
-                android:name=".MainActivity"
-                android:label="List Games">
+                android:name="bitwiseio.sawtooth.xo.MainActivity"
+                android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
@@ -22,31 +22,31 @@
             </intent-filter>
         </activity>
         <activity
-                android:name=".CreateGameActivity"
+                android:name="bitwiseio.sawtooth.xo.CreateGameActivity"
                 android:label="Create Game"
-                android:parentActivityName=".MainActivity">
+                android:parentActivityName="bitwiseio.sawtooth.xo.MainActivity">
 
             <!-- The meta-data tag is required if you support API level 15 and lower -->
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
-                    android:value=".MainActivity"/>
+                    android:value="bitwiseio.sawtooth.xo.MainActivity"/>
         </activity>
         <activity
-                android:name=".SettingsActivity"
+                android:name="bitwiseio.sawtooth.xo.SettingsActivity"
                 android:label="@string/title_activity_settings"
-                android:parentActivityName=".MainActivity">
+                android:parentActivityName="bitwiseio.sawtooth.xo.MainActivity">
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
-                    android:value="io.bitwise.sawtooth_xo.MainActivity"/>
+                    android:value="bitwiseio.sawtooth.xo.MainActivity"/>
         </activity>
         <activity
-            android:name=".GameBoardActivity"
+            android:name="bitwiseio.sawtooth.xo.GameBoardActivity"
             android:label="Game Board"
-            android:parentActivityName=".MainActivity">
+            android:parentActivityName="bitwiseio.sawtooth.xo.MainActivity">
 
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity"/>
+                android:value="bitwiseio.sawtooth.xo.MainActivity"/>
         </activity>
     </application>
 
