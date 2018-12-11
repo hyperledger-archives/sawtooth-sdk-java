@@ -11,10 +11,12 @@ import retrofit2.converter.gson.GsonConverterFactory
 import io.bitwise.sawtooth_xo.models.Game
 import io.bitwise.sawtooth_xo.state.rest_api.StateResponse
 import android.arch.lifecycle.MutableLiveData
+import io.bitwise.sawtooth_xo.state.rest_api.Entry
 
 class XoStateRepository {
     private var service: SawtoothRestApi? = null
     var games : MutableLiveData<List<Game>> = MutableLiveData()
+    var gameFocus: MutableLiveData<Game> = MutableLiveData()
 
     init {
         val retrofit = Retrofit.Builder()
@@ -49,6 +51,26 @@ class XoStateRepository {
                 }
             })
         }
+    }
+
+    fun getGameState(name: String) {
+        val gameAddress = makeGameAddress(name)
+        service?.getState(gameAddress)?.enqueue(object : Callback<StateResponse> {
+            override fun onResponse(call: Call<StateResponse>, response: Response<StateResponse>) {
+                if(response.body() != null) {
+                    val entry: Entry? = response.body()?.data?.get(0)
+                    val gameData: Game = entry?.data?.let { parseGame(it) }!!
+                    gameFocus.value = gameData
+                    Log.d("XO.State", "Updated game state")
+                } else {
+                    Log.d("XO.State", response.toString())
+                }
+            }
+            override fun onFailure(call: Call<StateResponse>, t: Throwable) {
+                Log.d("XO.State", t.toString())
+                call.cancel()
+            }
+        })
     }
 
     private fun parseGame(data: String) : Game {
