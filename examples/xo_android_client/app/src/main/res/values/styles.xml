@@ -8,7 +8,7 @@
         <!-- Dark Indigo -->
         <item name="colorAccent">#247bff</item>
         <!-- White text color -->
-        <item name="actionMenuTextColor">@color/status_bar</item>
+        <item name="actionMenuTextColor">@color/text</item>
         <!--<item name="preferenceTheme">@style/PreferenceThemeOverlay</item>-->
         <item name="preferenceTheme">
             @style/PreferenceThemeOverlay.v14.Material
@@ -16,7 +16,7 @@
         <!-- Blue -->
     </style>
     <style name="AppTheme.ActionBar" parent="ThemeOverlay.AppCompat.ActionBar">
-        <item name="actionMenuTextColor">@color/status_bar</item>
+        <item name="actionMenuTextColor">@color/text</item>
     </style>
 
     <style name="AppTheme" parent="AppTheme.Base"></style>

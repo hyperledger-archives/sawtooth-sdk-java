@@ -6,7 +6,9 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.EditText
 import android.widget.Toast
+import com.google.gson.Gson
 import io.bitwise.sawtooth_xo.state.rest_api.XORequestHandler
+import sawtooth.sdk.signing.Secp256k1PrivateKey
 
 class CreateGameActivity : AppCompatActivity() {
     private var requestHandler: XORequestHandler? = null
@@ -15,11 +17,11 @@ class CreateGameActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create_game)
         setSupportActionBar(findViewById(R.id.action_menu))
-        requestHandler = XORequestHandler(
-            getRestApiUrl(this,
-                getString(R.string.rest_api_settings_key),
-                getString(R.string.default_rest_api_address)),
-            getPrivateKey(this))
+
+        requestHandler = XORequestHandler(getRestApiUrl(this,
+            getString(R.string.rest_api_settings_key),
+            getString(R.string.default_rest_api_address)),
+            getPrivateKey(intent.getStringExtra("privateKey")))
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -47,5 +49,10 @@ class CreateGameActivity : AppCompatActivity() {
             // Invoke the superclass to handle it.
             super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun getPrivateKey(privateKey: String) : Secp256k1PrivateKey {
+        val gson = Gson()
+        return gson.fromJson(privateKey, Secp256k1PrivateKey::class.java)
     }
 }

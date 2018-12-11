@@ -4,6 +4,6 @@
     <color name="gameName">#222222</color>
     <color name="gameStatus">#999999</color>
     <color name="fab_icon">#ffffff</color>
-    <color name="status_bar">#ffffff</color>
-
+    <color name="text">#ffffff</color>
+    <color name="selected_button">#0000CD</color>
 </resources>

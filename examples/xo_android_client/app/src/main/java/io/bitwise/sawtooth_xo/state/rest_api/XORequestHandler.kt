@@ -37,6 +37,13 @@ class XORequestHandler(private var restApiURL: String, privateKey : PrivateKey) 
         sendRequest(batch, context)
     }
 
+    fun takeSpace(gameName: String, space: String, context: Context, restApiURL: String) {
+        checkURLChanged(restApiURL)
+        val takeSpaceTransaction = makeTransaction(gameName, "take", space)
+        val batch = makeBatch(arrayOf(takeSpaceTransaction))
+        sendRequest(batch, context)
+    }
+
     private fun checkURLChanged(url: String) {
         if(restApiURL != url) {
             restApiURL = url

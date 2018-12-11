@@ -53,8 +53,9 @@
                     style="?android:attr/buttonBarButtonStyle"
                     android:layout_width="122dp"
                     android:layout_height="122dp"
-                    android:id="@+id/button1" android:background="@color/design_default_color_primary"
-                    android:textSize="30sp"/>
+                    android:textColor="@color/text"
+                    android:id="@+id/button1" android:background=
+                            "@color/design_default_color_primary" android:textSize="30sp"/>
             <Space
                     android:layout_width="5dp"
                     android:layout_height="match_parent"/>
@@ -63,6 +64,7 @@
                     style="?android:attr/buttonBarButtonStyle"
                     android:layout_width="122dp"
                     android:layout_height="122dp" android:id="@+id/button2"
+                    android:textColor="@color/text"
                     android:background="@color/design_default_color_primary" android:textSize="30sp"/>
             <Space
                     android:layout_width="5dp"
@@ -72,6 +74,7 @@
                     style="?android:attr/buttonBarButtonStyle"
                     android:layout_width="122dp"
                     android:layout_height="122dp" android:id="@+id/button3"
+                    android:textColor="@color/text"
                     android:background="@color/design_default_color_primary" android:textSize="30sp"/>
         </TableRow>
         <TableRow
@@ -88,6 +91,7 @@
                     style="?android:attr/buttonBarButtonStyle"
                     android:layout_width="122dp"
                     android:layout_height="122dp" android:id="@+id/button4"
+                    android:textColor="@color/text"
                     android:background="@color/design_default_color_primary" android:textSize="30sp"/>
             <Space
                     android:layout_width="5dp"
@@ -97,6 +101,7 @@
                     style="?android:attr/buttonBarButtonStyle"
                     android:layout_width="122dp"
                     android:layout_height="122dp" android:id="@+id/button5"
+                    android:textColor="@color/text"
                     android:background="@color/design_default_color_primary" android:textSize="30sp"/>
             <Space
                     android:layout_width="5dp"
@@ -106,6 +111,7 @@
                     style="?android:attr/buttonBarButtonStyle"
                     android:layout_width="122dp"
                     android:layout_height="122dp" android:id="@+id/button6"
+                    android:textColor="@color/text"
                     android:background="@color/design_default_color_primary" android:textSize="30sp"/>
         </TableRow>
         <TableRow
@@ -122,6 +128,7 @@
                     style="?android:attr/buttonBarButtonStyle"
                     android:layout_width="122dp"
                     android:layout_height="122dp" android:id="@+id/button7"
+                    android:textColor="@color/text"
                     android:background="@color/design_default_color_primary" android:textSize="30sp"/>
             <Space
                     android:layout_width="5dp"
@@ -131,6 +138,7 @@
                     style="?android:attr/buttonBarButtonStyle"
                     android:layout_width="122dp"
                     android:layout_height="122dp" android:id="@+id/button8"
+                    android:textColor="@color/text"
                     android:background="@color/design_default_color_primary" android:textSize="30sp"/>
             <Space
                     android:layout_width="5dp"
@@ -140,6 +148,7 @@
                     style="?android:attr/buttonBarButtonStyle"
                     android:layout_width="122dp"
                     android:layout_height="122dp" android:id="@+id/button9"
+                    android:textColor="@color/text"
                     android:background="@color/design_default_color_primary" android:textSize="30sp"/>
         </TableRow>
     </TableLayout>

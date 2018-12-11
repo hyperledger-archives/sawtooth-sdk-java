@@ -14,9 +14,13 @@ import android.view.View
 import com.google.gson.Gson
 import io.bitwise.sawtooth_xo.adapters.PagerAdapter
 import io.bitwise.sawtooth_xo.models.Game
+import io.bitwise.sawtooth_xo.state.rest_api.XORequestHandler
 import io.bitwise.sawtooth_xo.viewmodels.GameViewModel
 
 class MainActivity : AppCompatActivity(),  GameListFragment.OnListFragmentInteractionListener{
+
+    var requestHandler: XORequestHandler? = null
+    private val gson = Gson()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,6 +36,7 @@ class MainActivity : AppCompatActivity(),  GameListFragment.OnListFragmentIntera
         val fab: FloatingActionButton = findViewById(R.id.newGameFloatingButton)
         fab.setOnClickListener {
             val intent = Intent(this, CreateGameActivity::class.java)
+            intent.putExtra("privateKey", gson.toJson(getPrivateKey(this)))
             startActivity(intent)
         }
     }
@@ -62,8 +67,8 @@ class MainActivity : AppCompatActivity(),  GameListFragment.OnListFragmentIntera
 
     override fun onListFragmentInteraction(item: Game?) {
         val intent = Intent(this, GameBoardActivity::class.java)
-        val gson = Gson()
         intent.putExtra("selectedGame", gson.toJson(item))
+        intent.putExtra("privateKey", gson.toJson(getPrivateKey(this)))
         startActivity(intent)
     }
 
