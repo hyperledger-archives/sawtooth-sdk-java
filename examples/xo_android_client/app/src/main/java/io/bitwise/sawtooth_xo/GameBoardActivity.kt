@@ -1,5 +1,7 @@
 package io.bitwise.sawtooth_xo
 
+import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModelProviders
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v7.app.AlertDialog
@@ -7,16 +9,19 @@ import android.view.*
 import android.widget.*
 import io.bitwise.sawtooth_xo.models.Game
 import com.google.gson.Gson
+import io.bitwise.sawtooth_xo.viewmodels.GameBoardViewModel
 
 
-class GameBoardActivity : AppCompatActivity() {
+class GameBoardActivity : AppCompatActivity(), View.OnClickListener{
 
     var game: Game? = null
+    private lateinit var model: GameBoardViewModel
+    private val gson = Gson()
+
     private var gameBoard: MutableList<Button> = mutableListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         val intent = this.intent
         val displayGame = getGameObject(intent.getStringExtra("selectedGame"))
         this.game = displayGame
@@ -24,9 +29,14 @@ class GameBoardActivity : AppCompatActivity() {
         setContentView(R.layout.activity_game_board)
         setSupportActionBar(findViewById(R.id.game_board_menu))
 
-        updateGameInformation(displayGame)
         collectButtons()
-        updateBoard()
+
+        model = ViewModelProviders.of(this).get(GameBoardViewModel::class.java)
+        model.game.observe(this, Observer<Game> { fetchedGame ->
+            game = fetchedGame
+            updateBoard()
+        })
+        model.loadGame(game?.name!!)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -36,7 +46,7 @@ class GameBoardActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
         R.id.refresh_board -> {
-            updateBoard()
+            model.loadGame(game?.name!!)
             true
 
         }
@@ -51,15 +61,14 @@ class GameBoardActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateGameInformation(item: Game) {
+    private fun updateGameInformation() {
         val boardName: TextView = this.findViewById(R.id.game_board_name)
-        boardName.text = item.name
+        boardName.text = game?.name
         val gameState: TextView = this.findViewById(R.id.game_board_state)
-        gameState.text = item.gameState
+        gameState.text = game?.gameState
     }
 
     private fun getGameObject(game: String): Game {
-        val gson = Gson()
         return gson.fromJson<Game>(game, Game::class.java)
     }
 
@@ -89,12 +98,14 @@ class GameBoardActivity : AppCompatActivity() {
             val tableRow: TableRow = findViewById(layout.getChildAt(i).id)
             for ( j in 0..tableRow.childCount step 2) {
                 val button: Button = findViewById(tableRow.getChildAt(j).id)
+                button.setOnClickListener(this)
                 gameBoard.add(button)
             }
         }
     }
 
     private fun updateBoard() {
+        updateGameInformation()
         gameBoard.forEachIndexed { index, button ->
             when (game?.board?.get(index)) {
                 'X', 'O' -> {
