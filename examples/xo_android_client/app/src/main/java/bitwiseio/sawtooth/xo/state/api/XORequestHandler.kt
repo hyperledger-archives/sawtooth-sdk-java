@@ -145,7 +145,8 @@ class XORequestHandler(private var restApiURL: String, privateKey: PrivateKey) {
             call1?.enqueue(object : Callback<BatchStatusResponse> {
                 override fun onResponse(call: Call<BatchStatusResponse>, response: Response<BatchStatusResponse>) {
                     Log.d("XO.State", response.body().toString())
-                    Snackbar.make(view, "Batch status: " + response.body()?.data?.get(0)?.status, Snackbar.LENGTH_LONG).show()
+                    val batchResponse = response.body()?.let { handleBatchStatus(it) }
+                    Snackbar.make(view, batchResponse.toString(), Snackbar.LENGTH_LONG).show()
                     callback(true)
                 }
                 override fun onFailure(call: Call<BatchStatusResponse>, t: Throwable) {
@@ -157,6 +158,30 @@ class XORequestHandler(private var restApiURL: String, privateKey: PrivateKey) {
         } else {
             Log.d("XO.State", "Failed to retrieve batch id. Cannot request batch status.")
             Snackbar.make(view, "Failed to get batch status", Snackbar.LENGTH_LONG).show()
+        }
+    }
+
+    private fun handleBatchStatus(batchResponse: BatchStatusResponse): String {
+        val status = batchResponse.data?.get(0)?.status
+        when (status) {
+            "INVALID" -> {
+                val invalidTransaction = batchResponse.data?.get(0)?.invalidTransactions[0]
+                Log.d("XO.State", invalidTransaction.id)
+                Log.d("XO.State", invalidTransaction.message)
+                return invalidTransaction.message.toString()
+            }
+            "COMMITTED" -> {
+                return "Batch Successfully Committed"
+            }
+            "PENDING" -> {
+                return "Batch Pending"
+            }
+            "UNKNOWN" -> {
+                return "Batch Status Unknown"
+            }
+            else -> {
+                return "Unhandled Status"
+            }
         }
     }
 }
