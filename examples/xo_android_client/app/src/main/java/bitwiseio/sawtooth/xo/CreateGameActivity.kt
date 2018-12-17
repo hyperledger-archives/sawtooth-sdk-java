@@ -1,7 +1,9 @@
 package bitwiseio.sawtooth.xo
 
+import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Handler
 import android.support.design.widget.Snackbar
 import android.view.Menu
 import android.view.MenuItem
@@ -39,7 +41,16 @@ class CreateGameActivity : AppCompatActivity() {
                 requestHandler?.createGame(message, findViewById(R.id.create_game_layout),
                     getRestApiUrl(this,
                         getString(R.string.rest_api_settings_key),
-                        getString(R.string.default_rest_api_address)))
+                        getString(R.string.default_rest_api_address))
+                ) {it ->
+                    if (it) {
+                        Handler().postDelayed({
+                            val intent = Intent(this, MainActivity::class.java)
+                            startActivity(intent)
+                        }, 1500)
+                    }
+
+                }
             }
             true
         }

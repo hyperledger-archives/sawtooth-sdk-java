@@ -143,7 +143,12 @@ class GameBoardActivity : AppCompatActivity(), View.OnClickListener {
             findViewById(R.id.game_board_layout),
             getRestApiUrl(this,
                 getString(R.string.rest_api_settings_key),
-                getString(R.string.default_rest_api_address)))
+                getString(R.string.default_rest_api_address))
+        ) { it ->
+            if (it) {
+                model.loadGame(game?.name!!)
+            }
+        }
         v.setBackgroundColor(ContextCompat.getColor(this, R.color.selected_button))
     }
 }

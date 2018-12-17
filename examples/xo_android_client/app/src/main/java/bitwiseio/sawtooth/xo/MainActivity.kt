@@ -14,12 +14,10 @@ import android.view.View
 import com.google.gson.Gson
 import bitwiseio.sawtooth.xo.adapters.PagerAdapter
 import bitwiseio.sawtooth.xo.models.Game
-import bitwiseio.sawtooth.xo.state.api.XORequestHandler
 import bitwiseio.sawtooth.xo.viewmodels.GameViewModel
 
 class MainActivity : AppCompatActivity(), GameListFragment.OnListFragmentInteractionListener {
 
-    var requestHandler: XORequestHandler? = null
     private val gson = Gson()
 
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -34,18 +34,22 @@ class XORequestHandler(private var restApiURL: String, privateKey: PrivateKey) {
         signer = Signer(context, privateKey)
     }
 
-    fun createGame(gameName: String, view: View, restApiURL: String) {
+    fun createGame(gameName: String, view: View, restApiURL: String, callback: (Boolean) -> Unit) {
         checkURLChanged(restApiURL)
         val createGameTransaction = makeTransaction(gameName, "create", null)
         val batch = makeBatch(arrayOf(createGameTransaction))
-        sendRequest(batch, view)
+        sendRequest(batch, view, callback={ it->
+            callback(it)
+        })
     }
 
-    fun takeSpace(gameName: String, space: String, view: View, restApiURL: String) {
+    fun takeSpace(gameName: String, space: String, view: View, restApiURL: String, callback: (Boolean) -> Unit) {
         checkURLChanged(restApiURL)
         val takeSpaceTransaction = makeTransaction(gameName, "take", space)
         val batch = makeBatch(arrayOf(takeSpaceTransaction))
-        sendRequest(batch, view)
+        sendRequest(batch, view, callback={ it->
+            callback(it)
+        })
     }
 
     private fun checkURLChanged(url: String) {
@@ -104,7 +108,7 @@ class XORequestHandler(private var restApiURL: String, privateKey: PrivateKey) {
             .build()
     }
 
-    private fun sendRequest(batch: Batch, view: View) {
+    private fun sendRequest(batch: Batch, view: View, callback: (Boolean) -> Unit) {
         val batchList = BatchList.newBuilder()
             .addBatches(batch)
             .build()
@@ -117,7 +121,9 @@ class XORequestHandler(private var restApiURL: String, privateKey: PrivateKey) {
             override fun onResponse(call: Call<BatchListResponse>, response: Response<BatchListResponse>) {
                 if (response.body() != null) {
                     Log.d("XO.State", response.body().toString())
-                    waitForBatch(response.body()?.link, 5, view)
+                    waitForBatch(response.body()?.link, 5, view, callback={ it ->
+                        callback(it)
+                    })
                 } else {
                     Snackbar.make(view, "Failed to submit transaction", Snackbar.LENGTH_LONG).show()
                     Log.d("XO.State", response.toString())
@@ -131,7 +137,7 @@ class XORequestHandler(private var restApiURL: String, privateKey: PrivateKey) {
         })
     }
 
-    private fun waitForBatch(batchLink: String?, wait: Int, view: View) {
+    private fun waitForBatch(batchLink: String?, wait: Int, view: View, callback: (Boolean) -> Unit) {
         val uri = Uri.parse(batchLink)
         val batchId = uri.getQueryParameter("id")
         if (batchId != null) {
@@ -140,6 +146,7 @@ class XORequestHandler(private var restApiURL: String, privateKey: PrivateKey) {
                 override fun onResponse(call: Call<BatchStatusResponse>, response: Response<BatchStatusResponse>) {
                     Log.d("XO.State", response.body().toString())
                     Snackbar.make(view, "Batch status: " + response.body()?.data?.get(0)?.status, Snackbar.LENGTH_LONG).show()
+                    callback(true)
                 }
                 override fun onFailure(call: Call<BatchStatusResponse>, t: Throwable) {
                     Log.d("XO.State", t.toString())
