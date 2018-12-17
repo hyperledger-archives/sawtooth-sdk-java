@@ -2,10 +2,10 @@ package bitwiseio.sawtooth.xo
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.design.widget.Snackbar
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.EditText
-import android.widget.Toast
 import com.google.gson.Gson
 import bitwiseio.sawtooth.xo.state.api.XORequestHandler
 import sawtooth.sdk.signing.Secp256k1PrivateKey
@@ -34,9 +34,9 @@ class CreateGameActivity : AppCompatActivity() {
             val editText = findViewById<EditText>(R.id.gameName)
             val message = editText.text.toString()
             if (message.isBlank()) {
-                Toast.makeText(applicationContext, "Please, enter a name for the game.", Toast.LENGTH_LONG).show()
+                Snackbar.make(findViewById(R.id.create_game_layout), "Please enter a name for the game.", Snackbar.LENGTH_LONG).show()
             } else {
-                requestHandler?.createGame(message, applicationContext,
+                requestHandler?.createGame(message, findViewById(R.id.create_game_layout),
                     getRestApiUrl(this,
                         getString(R.string.rest_api_settings_key),
                         getString(R.string.default_rest_api_address)))

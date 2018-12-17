@@ -24,6 +24,7 @@
         <activity
                 android:name="bitwiseio.sawtooth.xo.CreateGameActivity"
                 android:label="Create Game"
+                android:windowSoftInputMode="adjustResize"
                 android:parentActivityName="bitwiseio.sawtooth.xo.MainActivity">
 
             <!-- The meta-data tag is required if you support API level 15 and lower -->
