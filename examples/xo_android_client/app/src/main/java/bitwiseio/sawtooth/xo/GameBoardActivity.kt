@@ -17,6 +17,7 @@ import bitwiseio.sawtooth.xo.models.Game
 import com.google.gson.Gson
 import bitwiseio.sawtooth.xo.state.api.XORequestHandler
 import bitwiseio.sawtooth.xo.viewmodels.GameBoardViewModel
+import bitwiseio.sawtooth.xo.viewmodels.ViewModelFactory
 import sawtooth.sdk.signing.Secp256k1PrivateKey
 
 class GameBoardActivity : AppCompatActivity(), View.OnClickListener {
@@ -44,12 +45,18 @@ class GameBoardActivity : AppCompatActivity(), View.OnClickListener {
 
         collectButtons()
 
-        model = ViewModelProviders.of(this).get(GameBoardViewModel::class.java)
+        model = ViewModelProviders.of(this, ViewModelFactory(getRestApiUrl(this,
+            getString(R.string.rest_api_settings_key),
+            getString(R.string.default_rest_api_address)))
+        ).get(GameBoardViewModel::class.java)
+
         model.game.observe(this, Observer<Game> { fetchedGame ->
             game = fetchedGame
             updateBoard()
         })
-        model.loadGame(game?.name!!)
+        model.loadGame(game?.name!!, getRestApiUrl(this,
+            getString(R.string.rest_api_settings_key),
+            getString(R.string.default_rest_api_address)))
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -59,7 +66,9 @@ class GameBoardActivity : AppCompatActivity(), View.OnClickListener {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
         R.id.refresh_board -> {
-            model.loadGame(game?.name!!)
+            model.loadGame(game?.name!!, getRestApiUrl(this,
+                getString(R.string.rest_api_settings_key),
+                getString(R.string.default_rest_api_address)))
             true
         }
         R.id.game_board_information -> {
@@ -146,7 +155,9 @@ class GameBoardActivity : AppCompatActivity(), View.OnClickListener {
                 getString(R.string.default_rest_api_address))
         ) { it ->
             if (it) {
-                model.loadGame(game?.name!!)
+                model.loadGame(game?.name!!, getRestApiUrl(this,
+                    getString(R.string.rest_api_settings_key),
+                    getString(R.string.default_rest_api_address)))
             }
         }
         v.setBackgroundColor(ContextCompat.getColor(this, R.color.selected_button))

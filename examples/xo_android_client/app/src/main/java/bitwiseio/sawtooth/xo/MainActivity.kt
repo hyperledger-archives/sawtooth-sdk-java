@@ -15,6 +15,7 @@ import com.google.gson.Gson
 import bitwiseio.sawtooth.xo.adapters.PagerAdapter
 import bitwiseio.sawtooth.xo.models.Game
 import bitwiseio.sawtooth.xo.viewmodels.GameViewModel
+import bitwiseio.sawtooth.xo.viewmodels.ViewModelFactory
 
 class MainActivity : AppCompatActivity(), GameListFragment.OnListFragmentInteractionListener {
 
@@ -72,8 +73,12 @@ class MainActivity : AppCompatActivity(), GameListFragment.OnListFragmentInterac
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         R.id.refresh_list -> {
-            val model = ViewModelProviders.of(this).get(GameViewModel::class.java)
-            model.loadGames(true)
+            val model = ViewModelProviders.of(this, ViewModelFactory(getRestApiUrl(this,
+                getString(R.string.rest_api_settings_key),
+                getString(R.string.default_rest_api_address)))).get(GameViewModel::class.java)
+            model.loadGames(true, getRestApiUrl(this,
+                getString(R.string.rest_api_settings_key),
+                getString(R.string.default_rest_api_address)))
             true
         }
         R.id.settings -> {

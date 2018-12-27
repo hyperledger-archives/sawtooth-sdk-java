@@ -7,8 +7,8 @@ import android.arch.lifecycle.ViewModel
 import bitwiseio.sawtooth.xo.models.Game
 import bitwiseio.sawtooth.xo.state.XoStateRepository
 
-class GameViewModel : ViewModel() {
-    private val stateRepository: XoStateRepository = XoStateRepository()
+class GameViewModel(initUrl: String) : ViewModel() {
+    private var stateRepository: XoStateRepository = XoStateRepository(initUrl)
     var games: LiveData<List<Game>> = Transformations.switchMap(stateRepository.games) { input ->
         var m = MutableLiveData<List<Game>>()
         m.value = input
@@ -16,10 +16,10 @@ class GameViewModel : ViewModel() {
     }
 
     init {
-        stateRepository.getState(true)
+        stateRepository.getState(true, initUrl)
     }
 
-    fun loadGames(update: Boolean) {
-        stateRepository.getState(update)
+    fun loadGames(update: Boolean, url: String) {
+        stateRepository.getState(update, url)
     }
 }

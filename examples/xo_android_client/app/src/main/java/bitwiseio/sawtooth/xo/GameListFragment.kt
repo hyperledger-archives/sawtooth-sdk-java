@@ -14,6 +14,7 @@ import android.view.ViewGroup
 import bitwiseio.sawtooth.xo.adapters.GameListRecyclerViewAdapter
 import bitwiseio.sawtooth.xo.models.Game
 import bitwiseio.sawtooth.xo.viewmodels.GameViewModel
+import bitwiseio.sawtooth.xo.viewmodels.ViewModelFactory
 
 /**
  * A fragment representing a list of Items.
@@ -29,7 +30,9 @@ class GameListFragment : Fragment() {
         super.onCreate(savedInstanceState)
 
         model = activity?.run {
-            ViewModelProviders.of(this).get(GameViewModel::class.java)
+            ViewModelProviders.of(this, ViewModelFactory(getRestApiUrl(activity!!,
+                getString(R.string.rest_api_settings_key),
+                getString(R.string.default_rest_api_address)))).get(GameViewModel::class.java)
         } ?: throw Exception("Invalid Activity")
     }
 

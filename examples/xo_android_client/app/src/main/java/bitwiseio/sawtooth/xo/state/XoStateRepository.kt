@@ -13,21 +13,22 @@ import bitwiseio.sawtooth.xo.state.api.StateResponse
 import android.arch.lifecycle.MutableLiveData
 import bitwiseio.sawtooth.xo.state.api.Entry
 
-class XoStateRepository {
+class XoStateRepository(url: String) {
     private var service: SawtoothRestApi? = null
     var games: MutableLiveData<List<Game>> = MutableLiveData()
     var gameFocus: MutableLiveData<Game> = MutableLiveData()
+    private var restApiURL: String = url
 
     init {
         val retrofit = Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:9708")
+            .baseUrl(restApiURL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-
         service = retrofit.create<SawtoothRestApi>(SawtoothRestApi::class.java)
     }
 
-    fun getState(update: Boolean) {
+    fun getState(update: Boolean, url: String) {
+        checkURLChanged(url)
         val resp = arrayListOf<Game>()
         if (update) {
             service?.getState(transactionFamilyPrefix())?.enqueue(object : Callback<StateResponse> {
@@ -52,7 +53,8 @@ class XoStateRepository {
         }
     }
 
-    fun getGameState(name: String) {
+    fun getGameState(name: String, url: String) {
+        checkURLChanged(url)
         val gameAddress = makeGameAddress(name)
         service?.getState(gameAddress)?.enqueue(object : Callback<StateResponse> {
             override fun onResponse(call: Call<StateResponse>, response: Response<StateResponse>) {
@@ -76,5 +78,21 @@ class XoStateRepository {
         val decoded = String(BaseEncoding.base64().decode(data))
         val split = decoded.split(',')
         return Game(split[0], split[1], split[2], split[3], split[4])
+    }
+
+    private fun checkURLChanged(url: String) {
+        if (restApiURL != url) {
+            restApiURL = url
+            buildService()
+        }
+    }
+
+    private fun buildService() {
+        val retrofit = Retrofit.Builder()
+            .baseUrl(restApiURL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        service = retrofit.create<SawtoothRestApi>(SawtoothRestApi::class.java)
     }
 }
