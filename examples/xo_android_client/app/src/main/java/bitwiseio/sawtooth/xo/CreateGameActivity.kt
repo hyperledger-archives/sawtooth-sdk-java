@@ -42,14 +42,13 @@ class CreateGameActivity : AppCompatActivity() {
                     getRestApiUrl(this,
                         getString(R.string.rest_api_settings_key),
                         getString(R.string.default_rest_api_address))
-                ) {it ->
+                ) { it ->
                     if (it) {
                         Handler().postDelayed({
                             val intent = Intent(this, MainActivity::class.java)
                             startActivity(intent)
                         }, 1500)
                     }
-
                 }
             }
             true

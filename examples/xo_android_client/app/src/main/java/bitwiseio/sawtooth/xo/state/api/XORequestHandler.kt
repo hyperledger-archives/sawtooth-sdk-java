@@ -38,7 +38,7 @@ class XORequestHandler(private var restApiURL: String, privateKey: PrivateKey) {
         checkURLChanged(restApiURL)
         val createGameTransaction = makeTransaction(gameName, "create", null)
         val batch = makeBatch(arrayOf(createGameTransaction))
-        sendRequest(batch, view, callback={ it->
+        sendRequest(batch, view, callback = { it ->
             callback(it)
         })
     }
@@ -47,7 +47,7 @@ class XORequestHandler(private var restApiURL: String, privateKey: PrivateKey) {
         checkURLChanged(restApiURL)
         val takeSpaceTransaction = makeTransaction(gameName, "take", space)
         val batch = makeBatch(arrayOf(takeSpaceTransaction))
-        sendRequest(batch, view, callback={ it->
+        sendRequest(batch, view, callback = { it ->
             callback(it)
         })
     }
@@ -121,7 +121,7 @@ class XORequestHandler(private var restApiURL: String, privateKey: PrivateKey) {
             override fun onResponse(call: Call<BatchListResponse>, response: Response<BatchListResponse>) {
                 if (response.body() != null) {
                     Log.d("XO.State", response.body().toString())
-                    waitForBatch(response.body()?.link, 5, view, callback={ it ->
+                    waitForBatch(response.body()?.link, 5, view, callback = { it ->
                         callback(it)
                     })
                 } else {
@@ -162,10 +162,10 @@ class XORequestHandler(private var restApiURL: String, privateKey: PrivateKey) {
     }
 
     private fun handleBatchStatus(batchResponse: BatchStatusResponse): String {
-        val status = batchResponse.data?.get(0)?.status
+        val status = batchResponse.data[0].status
         when (status) {
             "INVALID" -> {
-                val invalidTransaction = batchResponse.data?.get(0)?.invalidTransactions[0]
+                val invalidTransaction = batchResponse.data[0].invalidTransactions[0]
                 Log.d("XO.State", invalidTransaction.id)
                 Log.d("XO.State", invalidTransaction.message)
                 return invalidTransaction.message.toString()
