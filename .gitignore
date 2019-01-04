@@ -31,3 +31,5 @@
 /sawtooth-sdk-transaction-processor/*.iml
 /sawtooth-sdk-transaction-processor/target/
 *.batch
+
+/docs/build/
