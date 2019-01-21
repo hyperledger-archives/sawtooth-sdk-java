@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <android.support.v7.preference.EditTextPreference
+            android:key="@string/rest_api_settings_key"
+            android:title="@string/rest_api_settings_title"
+            android:summary="@string/rest_api_settings_summary"
+            android:dialogMessage="@string/rest_api_settings_dialog_message"
+            android:defaultValue="@string/default_rest_api_address" />
+
+</PreferenceScreen>

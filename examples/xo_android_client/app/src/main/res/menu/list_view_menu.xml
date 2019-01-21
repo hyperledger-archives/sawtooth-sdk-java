@@ -1,0 +1,12 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+            android:id="@+id/refresh_list"
+            android:icon="@drawable/baseline_refresh_48"
+            android:title="@string/refresh_btn"
+            app:showAsAction="ifRoom"/>
+
+    <item
+            android:id="@+id/settings"
+            app:showAsAction="withText|never" android:title="@string/settings_btn"/>
+</menu>

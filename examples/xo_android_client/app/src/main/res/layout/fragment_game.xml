@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:orientation="horizontal"
+              android:background="?android:attr/selectableItemBackground"
+              android:clickable="true"
+              android:focusable="true"
+              android:paddingBottom="@dimen/row_padding_vertical"
+              android:paddingLeft="@dimen/activity_horizontal_margin"
+              android:paddingRight="@dimen/activity_horizontal_margin"
+              android:paddingTop="@dimen/row_padding_vertical">
+
+    <TextView
+            android:id="@+id/item_game_number"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/text_margin"
+            android:textAppearance="?attr/textAppearanceListItem"
+            android:textColor="@color/gameName"
+            android:textSize="18sp"
+            android:layout_weight="1"/>
+
+    <TextView
+            android:id="@+id/item_game_status"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textColor="@color/gameStatus"
+            android:layout_margin="@dimen/text_margin"
+            android:textAppearance="?attr/textAppearanceListItem"
+            android:gravity="end" android:layout_weight="1"/>
+</LinearLayout>

@@ -1,0 +1,9 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+            android:id="@+id/send_transaction"
+            android:icon="@drawable/baseline_send_48"
+            android:title="@string/send_btn"
+            app:showAsAction="ifRoom"/>
+
+</menu>
