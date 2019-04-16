@@ -15,78 +15,117 @@
 // limitations under the License.
 // ------------------------------------------------------------------------------
 
-// Discard old builds after 31 days
-properties([[$class: 'BuildDiscarderProperty', strategy:
-        [$class: 'LogRotator', artifactDaysToKeepStr: '',
-        artifactNumToKeepStr: '', daysToKeepStr: '31', numToKeepStr: '']]]);
 
-node ('master') {
-    // Create a unique workspace so Jenkins doesn't reuse an existing one
-    ws("workspace/${env.BUILD_TAG}") {
-        stage("Clone Repo") {
-            checkout scm
+pipeline {
+    agent {
+        node {
+            label 'master'
+            customWorkspace "workspace/${env.BUILD_TAG}"
         }
+    }
 
-        if (!(env.BRANCH_NAME == 'master' && env.JOB_BASE_NAME == 'master')) {
-            stage("Check Whitelist") {
+    triggers {
+        cron(env.BRANCH_NAME == 'master' ? 'H 3 * * *' : '')
+    }
+
+    options {
+        timestamps()
+        buildDiscarder(logRotator(daysToKeepStr: '31'))
+    }
+
+    environment {
+        ISOLATION_ID = sh(returnStdout: true, script: 'printf $BUILD_TAG | sha256sum | cut -c1-64').trim()
+        COMPOSE_PROJECT_NAME = sh(returnStdout: true, script: 'printf $BUILD_TAG | sha256sum | cut -c1-64').trim()
+    }
+
+    stages {
+        stage('Check Whitelist') {
+            steps {
                 readTrusted 'bin/whitelist'
                 sh './bin/whitelist "$CHANGE_AUTHOR" /etc/jenkins-authorized-builders'
             }
+            when {
+                not {
+                    branch 'master'
+                }
+            }
         }
 
-        stage("Check for Signed-Off Commits") {
-            sh '''#!/bin/bash -l
-                if [ -v CHANGE_URL ] ;
-                then
-                    temp_url="$(echo $CHANGE_URL |sed s#github.com/#api.github.com/repos/#)/commits"
-                    pull_url="$(echo $temp_url |sed s#pull#pulls#)"
-
-                    IFS=$'\n'
-                    for m in $(curl -s "$pull_url" | grep "message") ; do
-                        if echo "$m" | grep -qi signed-off-by:
-                        then
-                          continue
-                        else
-                          echo "FAIL: Missing Signed-Off Field"
-                          echo "$m"
-                          exit 1
-                        fi
-                    done
-                    unset IFS;
-                fi
-            '''
+        stage('Check for Signed-Off Commits') {
+            steps {
+                sh '''#!/bin/bash -l
+                    if [ -v CHANGE_URL ] ;
+                    then
+                        temp_url="$(echo $CHANGE_URL |sed s#github.com/#api.github.com/repos/#)/commits"
+                        pull_url="$(echo $temp_url |sed s#pull#pulls#)"
+                        IFS=$'\n'
+                        for m in $(curl -s "$pull_url" | grep "message") ; do
+                            if echo "$m" | grep -qi signed-off-by:
+                            then
+                              continue
+                            else
+                              echo "FAIL: Missing Signed-Off Field"
+                              echo "$m"
+                              exit 1
+                            fi
+                        done
+                        unset IFS;
+                    fi
+                '''
+            }
         }
 
-        // Set the ISOLATION_ID environment variable for the whole pipeline
-        env.ISOLATION_ID = sh(returnStdout: true, script: 'printf $BUILD_TAG | sha256sum | cut -c1-64').trim()
-        env.COMPOSE_PROJECT_NAME = sh(returnStdout: true, script: 'printf $BUILD_TAG | sha256sum | cut -c1-64').trim()
+        stage('Fetch Tags') {
+            steps {
+                sh 'git fetch --tag'
+            }
+        }
 
-        // Build the test dependencies
-        stage("Build test dependencies") {
-            sh 'docker-compose -f docker/compose/java-build.yaml build'
-            sh 'docker-compose -f docker/compose/java-build.yaml up'
+        stage('Build Test Dependencies') {
+            steps {
+                sh 'docker-compose -f docker/compose/java-build.yaml build'
+                sh 'docker-compose -f docker/compose/java-build.yaml up'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                sh 'docker-compose -f examples/intkey_java/tests/test_intkey_smoke_java.yaml up --abort-on-container-exit'
+                sh 'docker-compose -f examples/intkey_java/tests/test_tp_intkey_java.yaml up --abort-on-container-exit'
+                sh 'docker-compose -f examples/xo_java/tests/test_tp_xo_java.yaml up --abort-on-container-exit'
+                sh 'docker-compose -f examples/xo_java/tests/test_xo_smoke_java.yaml up --abort-on-container-exit'
+            }
+        }
+
+        stage('Create Git Archive') {
+            steps {
+                sh '''
+                    REPO=$(git remote show -n origin | grep Fetch | awk -F'[/.]' '{print $6}')
+                    VERSION=`git describe --dirty`
+                    git archive HEAD --format=zip -9 --output=$REPO-$VERSION.zip
+                    git archive HEAD --format=tgz -9 --output=$REPO-$VERSION.tgz
+                '''
+            }
+        }
+
+    }
+
+    post {
+        always {
             sh 'docker-compose -f docker/compose/java-build.yaml down'
+            sh 'docker-compose -f examples/intkey_java/tests/test_intkey_smoke_java.yaml down'
+            sh 'docker-compose -f examples/intkey_java/tests/test_tp_intkey_java.yaml down'
+            sh 'docker-compose -f examples/xo_java/tests/test_tp_xo_java.yaml down'
+            sh 'docker-compose -f examples/xo_java/tests/test_xo_smoke_java.yaml down'
         }
-
-        // Run the tests
-        stage("Run Tests") {
-            sh 'docker-compose -f examples/intkey_java/tests/test_intkey_smoke_java.yaml up --abort-on-container-exit'
-            sh 'docker-compose -f examples/intkey_java/tests/test_tp_intkey_java.yaml up --abort-on-container-exit'
-            sh 'docker-compose -f examples/xo_java/tests/test_tp_xo_java.yaml up --abort-on-container-exit'
-            sh 'docker-compose -f examples/xo_java/tests/test_xo_smoke_java.yaml up --abort-on-container-exit'
+        success {
+            archiveArtifacts '*.tgz, *.zip'
         }
-
-        stage("Create git archive") {
-            sh '''
-                REPO=$(git remote show -n origin | grep Fetch | awk -F'[/.]' '{print $6}')
-                VERSION=`git describe --dirty`
-                git archive HEAD --format=zip -9 --output=$REPO-$VERSION.zip
-                git archive HEAD --format=tgz -9 --output=$REPO-$VERSION.tgz
-            '''
+        aborted {
+            error "Aborted, exiting now"
         }
-
-        stage("Archive Build artifacts") {
-            archiveArtifacts artifacts: '*.tgz, *.zip'
+        failure {
+            error "Failed, exiting now"
         }
     }
 }
