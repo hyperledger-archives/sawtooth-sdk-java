@@ -150,7 +150,7 @@ public class TransactionProcessor implements Runnable {
       final Message message, final Stream stream, final TransactionHandler handler) {
     try {
       TpProcessRequest transactionRequest = TpProcessRequest.parseFrom(message.getContent());
-      State state = new StateImpl(stream, transactionRequest.getContextId());
+      Context state = new ZmqContext(stream, transactionRequest.getContextId());
 
       TpProcessResponse.Builder builder = TpProcessResponse.newBuilder();
       try {
