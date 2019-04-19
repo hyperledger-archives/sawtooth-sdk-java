@@ -17,6 +17,10 @@
 /.idea/
 *.sublime*
 *.iml
+**/.project
+**/.settings
+**/.classpath
+**/.checkstyle
 
 /examples/intkey_java/dependency-reduced-pom.xml
 /examples/intkey_java/target/
@@ -33,3 +37,4 @@
 *.batch
 
 /docs/build/
+
