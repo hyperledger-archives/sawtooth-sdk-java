@@ -20,7 +20,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 
 import org.apache.commons.lang3.StringUtils;
 
-import sawtooth.sdk.processor.State;
+import sawtooth.sdk.processor.Context;
 import sawtooth.sdk.processor.TransactionHandler;
 import sawtooth.sdk.processor.Utils;
 import sawtooth.sdk.processor.exceptions.InternalError;
@@ -101,7 +101,7 @@ public class XoHandler implements TransactionHandler {
   }
 
   @Override
-  public void apply(TpProcessRequest transactionRequest, State stateStore)
+  public void apply(TpProcessRequest transactionRequest, Context context)
       throws InvalidTransactionException, InternalError {
     TransactionData transactionData = getUnpackedTransaction(transactionRequest);
 
@@ -137,14 +137,14 @@ public class XoHandler implements TransactionHandler {
     }
 
     String address = makeGameAddress(transactionData.gameName);
-    // stateStore.get() returns a list.
+    // context.get() returns a list.
     // If no data has been stored yet at the given address, it will be empty.
-    String stateEntry = stateStore.getState(
+    String stateEntry = context.getState(
         Collections.singletonList(address)
     ).get(address).toStringUtf8();
     GameData stateData = getStateData(stateEntry, transactionData.gameName);
     GameData updatedGameData = playXo(transactionData, stateData, player);
-    storeGameData(address, updatedGameData, stateEntry, stateStore);
+    storeGameData(address, updatedGameData, stateEntry, context);
   }
 
   /**
@@ -210,10 +210,9 @@ public class XoHandler implements TransactionHandler {
     return "";
   }
 
-  /**
-   * Helper function to store state data.
-   */
-  private void storeGameData(String address, GameData gameData, String stateEntry, State stateStore)
+  /** Helper function to store state data. */
+  private void storeGameData(
+      String address, GameData gameData, String stateEntry, Context context)
       throws InternalError, InvalidTransactionException {
     String gameDataCsv = String.format("%s,%s,%s,%s,%s",
         gameData.gameName, gameData.board, gameData.state, gameData.playerOne, gameData.playerTwo);
@@ -234,7 +233,7 @@ public class XoHandler implements TransactionHandler {
     ByteString csvByteString = ByteString.copyFromUtf8(stateEntry);
     Map.Entry<String, ByteString> entry = new AbstractMap.SimpleEntry<>(address, csvByteString);
     Collection<Map.Entry<String, ByteString>> addressValues = Collections.singletonList(entry);
-    Collection<String> addresses = stateStore.setState(addressValues);
+    Collection<String> addresses = context.setState(addressValues);
     if (addresses.size() < 1) {
       throw new InternalError("State Error");
     }
