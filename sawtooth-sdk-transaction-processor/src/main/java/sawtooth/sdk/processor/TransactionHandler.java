@@ -51,7 +51,7 @@ public interface TransactionHandler {
    * @throws InternalError something went wrong processing transaction
    */
   void apply(TpProcessRequest transactionRequest,
-                    State state) throws InvalidTransactionException, InternalError;
+                    Context state) throws InvalidTransactionException, InternalError;
 
 
 }

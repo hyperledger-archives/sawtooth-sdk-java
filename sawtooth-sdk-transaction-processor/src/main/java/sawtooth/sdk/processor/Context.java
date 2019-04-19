@@ -24,7 +24,7 @@ import sawtooth.sdk.processor.exceptions.InvalidTransactionException;
 /**
  * Interface for interaction with the context manager.
  */
-public interface State {
+public interface Context {
 
   /**
    * Make a Get request on a specific context specified by contextId.

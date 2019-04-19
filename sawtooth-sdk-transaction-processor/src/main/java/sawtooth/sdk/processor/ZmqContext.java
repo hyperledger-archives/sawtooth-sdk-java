@@ -38,7 +38,7 @@ import java.util.Map;
  * Client state that interacts with the context manager through Stream
  * networking.
  */
-public class StateImpl implements State {
+public class ZmqContext implements Context {
 
   /**
    * The stream networking for this class.
@@ -61,7 +61,7 @@ public class StateImpl implements State {
    * @param myStream    a networking stream
    * @param myContextId a context id
    */
-  public StateImpl(final Stream myStream, final String myContextId) {
+  public ZmqContext(final Stream myStream, final String myContextId) {
     this.stream = myStream;
     this.contextId = myContextId;
   }
