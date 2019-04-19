@@ -35,40 +35,25 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
-/**
- * Sawtooth transaction processor.
- */
+/** Sawtooth transaction processor. */
 public class TransactionProcessor implements Runnable {
 
-  /**
-   * Logging class for this processor.
-   */
+  /** Logging class for this processor. */
   private static final Logger LOGGER = Logger.getLogger(TransactionProcessor.class.getName());
 
-  /**
-   * Streaming class for this processor.
-   */
+  /** Streaming class for this processor. */
   private Stream stream;
 
-  /**
-   * List of transaction handlers for this processor.
-   */
+  /** List of transaction handlers for this processor. */
   private ArrayList<TransactionHandler> handlers;
 
-  /**
-   * The current message for this processor.
-   */
+  /** The current message for this processor. */
   private Message currentMessage;
 
-  /**
-   * Whether or not this processor has been registered.
-   */
+  /** Whether or not this processor has been registered. */
   private boolean registered;
 
-  /**
-   * Handles shutting down this transaction processor.
-   */
+  /** Handles shutting down this transaction processor. */
   class Shutdown extends Thread {
     @Override
     public void run() {
@@ -80,12 +65,11 @@ public class TransactionProcessor implements Runnable {
         LOGGER.info(TransactionProcessor.this.getCurrentMessage().toString());
       }
       try {
-        TpUnregisterRequest unregisterRequest = TpUnregisterRequest
-                .newBuilder()
-                .build();
+        TpUnregisterRequest unregisterRequest = TpUnregisterRequest.newBuilder().build();
         LOGGER.info("Send TpUnregisterRequest");
-        Future fut = TransactionProcessor.this.stream.send(
-            Message.MessageType.TP_UNREGISTER_REQUEST, unregisterRequest.toByteString());
+        Future fut =
+            TransactionProcessor.this.stream.send(
+                Message.MessageType.TP_UNREGISTER_REQUEST, unregisterRequest.toByteString());
         ByteString response = fut.getResult(1);
         Message message = TransactionProcessor.this.getCurrentMessage();
         if (message == null) {
@@ -109,6 +93,7 @@ public class TransactionProcessor implements Runnable {
 
   /**
    * constructor.
+   *
    * @param address the zmq address
    */
   public TransactionProcessor(final String address) {
@@ -121,19 +106,20 @@ public class TransactionProcessor implements Runnable {
 
   /**
    * add a handler that will be run from within the run method.
+   *
    * @param handler implements that TransactionHandler interface
    */
   public final void addHandler(final TransactionHandler handler) {
-    TpRegisterRequest registerRequest = TpRegisterRequest
-            .newBuilder()
+    TpRegisterRequest registerRequest =
+        TpRegisterRequest.newBuilder()
             .setFamily(handler.transactionFamilyName())
             .addAllNamespaces(handler.getNameSpaces())
             .setVersion(handler.getVersion())
             .setMaxOccupancy(1)
             .build();
     try {
-      Future fut = this.stream.send(
-          Message.MessageType.TP_REGISTER_REQUEST, registerRequest.toByteString());
+      Future fut =
+          this.stream.send(Message.MessageType.TP_REGISTER_REQUEST, registerRequest.toByteString());
       fut.getResult();
       this.registered = true;
       this.handlers.add(handler);
@@ -145,26 +131,26 @@ public class TransactionProcessor implements Runnable {
   }
 
   /**
-  * Get the current message that is being processed.
+   * Get the current message that is being processed.
    *
    * @return the current message
-  */
+   */
   private Message getCurrentMessage() {
     return this.currentMessage;
   }
 
   /**
-  * Used to process a message.
-  * @param message The Message to process.
-  * @param stream The Stream to use to send back responses.
-  * @param handler The handler that should be used to process the message.
-  */
-  private static void process(final Message message, final Stream stream,
-      final TransactionHandler handler) {
+   * Used to process a message.
+   *
+   * @param message The Message to process.
+   * @param stream The Stream to use to send back responses.
+   * @param handler The handler that should be used to process the message.
+   */
+  private static void process(
+      final Message message, final Stream stream, final TransactionHandler handler) {
     try {
-      TpProcessRequest transactionRequest = TpProcessRequest
-              .parseFrom(message.getContent());
-      State state = new State(stream, transactionRequest.getContextId());
+      TpProcessRequest transactionRequest = TpProcessRequest.parseFrom(message.getContent());
+      State state = new StateImpl(stream, transactionRequest.getContextId());
 
       TpProcessResponse.Builder builder = TpProcessResponse.newBuilder();
       try {
@@ -185,28 +171,29 @@ public class TransactionProcessor implements Runnable {
           builder.setExtendedData(ByteString.copyFrom(ie.getExtendedData()));
         }
       }
-      stream.sendBack(Message.MessageType.TP_PROCESS_RESPONSE,
-              message.getCorrelationId(),
-              builder.build().toByteString());
+      stream.sendBack(
+          Message.MessageType.TP_PROCESS_RESPONSE,
+          message.getCorrelationId(),
+          builder.build().toByteString());
 
     } catch (InvalidProtocolBufferException ipbe) {
-      LOGGER.info(
-              "Received Bytestring that wasn't requested that isn't TransactionProcessRequest");
+      LOGGER.info("Received Bytestring that wasn't requested that isn't TransactionProcessRequest");
     }
   }
 
   /**
-  * Find the handler that should be used to process the given message.
-  * @param message The message that has the TpProcessRequest that the header
-  *                that will be checked against the handler.
-  * @return the handler that should be used to processor the given message
-  */
+   * Find the handler that should be used to process the given message.
+   *
+   * @param message The message that has the TpProcessRequest that the header that will be checked
+   *     against the handler.
+   * @return the handler that should be used to processor the given message
+   */
   private TransactionHandler findHandler(final Message message) {
     try {
-      TpProcessRequest transactionRequest = TpProcessRequest
-              .parseFrom(this.currentMessage.getContent());
+      TpProcessRequest transactionRequest =
+          TpProcessRequest.parseFrom(this.currentMessage.getContent());
       TransactionHeader header = transactionRequest.getHeader();
-      for (int  i = 0; i < this.handlers.size(); i++) {
+      for (int i = 0; i < this.handlers.size(); i++) {
         TransactionHandler handler = this.handlers.get(i);
         if (header.getFamilyName().equals(handler.transactionFamilyName())
             && header.getFamilyVersion().equals(handler.getVersion())) {
@@ -215,8 +202,7 @@ public class TransactionProcessor implements Runnable {
       }
       LOGGER.info("Missing handler for header: " + header.toString());
     } catch (InvalidProtocolBufferException ipbe) {
-      LOGGER.info(
-              "Received Message that isn't a TransactionProcessRequest");
+      LOGGER.info("Received Message that isn't a TransactionProcessRequest");
       ipbe.printStackTrace();
     }
     return null;
@@ -230,16 +216,14 @@ public class TransactionProcessor implements Runnable {
         if (this.currentMessage != null) {
           if (this.currentMessage.getMessageType() == Message.MessageType.PING_REQUEST) {
             LOGGER.info("Recieved Ping Message.");
-            PingResponse pingResponse = PingResponse
-                .newBuilder()
-                .build();
+            PingResponse pingResponse = PingResponse.newBuilder().build();
             this.stream.sendBack(
                 Message.MessageType.PING_RESPONSE,
                 this.currentMessage.getCorrelationId(),
                 pingResponse.toByteString());
             this.currentMessage = null;
           } else if (this.currentMessage.getMessageType()
-                == Message.MessageType.TP_PROCESS_REQUEST) {
+              == Message.MessageType.TP_PROCESS_REQUEST) {
             TransactionHandler handler = this.findHandler(this.currentMessage);
             if (handler == null) {
               break;
@@ -256,21 +240,22 @@ public class TransactionProcessor implements Runnable {
           this.registered = false;
           for (int i = 0; i < this.handlers.size(); i++) {
             TransactionHandler handler = this.handlers.get(i);
-            TpRegisterRequest registerRequest = TpRegisterRequest
-                    .newBuilder()
+            TpRegisterRequest registerRequest =
+                TpRegisterRequest.newBuilder()
                     .setFamily(handler.transactionFamilyName())
                     .addAllNamespaces(handler.getNameSpaces())
                     .setVersion(handler.getVersion())
                     .build();
 
             try {
-              Future fut = this.stream.send(
-                  Message.MessageType.TP_REGISTER_REQUEST, registerRequest.toByteString());
+              Future fut =
+                  this.stream.send(
+                      Message.MessageType.TP_REGISTER_REQUEST, registerRequest.toByteString());
               fut.getResult();
               this.registered = true;
             } catch (InterruptedException ie) {
               LOGGER.log(Level.WARNING, ie.toString());
-            }  catch (ValidatorConnectionError vce) {
+            } catch (ValidatorConnectionError vce) {
               LOGGER.log(Level.WARNING, vce.toString());
             }
           }
