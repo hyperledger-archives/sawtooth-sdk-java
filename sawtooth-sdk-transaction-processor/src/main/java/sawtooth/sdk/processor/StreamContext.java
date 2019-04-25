@@ -49,7 +49,7 @@ import sawtooth.sdk.protobuf.TpStateSetResponse;
  * Client state that interacts with the context manager through Stream
  * networking.
  */
-public class ZmqContext implements Context {
+public class StreamContext implements Context {
 
   /**
    * The stream networking for this class.
@@ -71,7 +71,7 @@ public class ZmqContext implements Context {
    * @param myStream    a networking stream
    * @param myContextId a context id
    */
-  public ZmqContext(final Stream myStream, final String myContextId) {
+  public StreamContext(final Stream myStream, final String myContextId) {
     this.stream = myStream;
     this.contextId = myContextId;
   }
