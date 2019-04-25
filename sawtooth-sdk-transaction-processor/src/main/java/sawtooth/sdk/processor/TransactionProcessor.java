@@ -19,6 +19,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 
 import sawtooth.sdk.messaging.Future;
 import sawtooth.sdk.messaging.Stream;
+import sawtooth.sdk.messaging.ZmqStream;
 import sawtooth.sdk.processor.exceptions.InternalError;
 import sawtooth.sdk.processor.exceptions.InvalidTransactionException;
 import sawtooth.sdk.processor.exceptions.ValidatorConnectionError;
@@ -97,7 +98,7 @@ public class TransactionProcessor implements Runnable {
    * @param address the zmq address
    */
   public TransactionProcessor(final String address) {
-    this.stream = new Stream(address);
+    this.stream = new ZmqStream(address);
     this.handlers = new ArrayList<TransactionHandler>();
     this.currentMessage = null;
     this.registered = false;
@@ -150,7 +151,7 @@ public class TransactionProcessor implements Runnable {
       final Message message, final Stream stream, final TransactionHandler handler) {
     try {
       TpProcessRequest transactionRequest = TpProcessRequest.parseFrom(message.getContent());
-      Context state = new ZmqContext(stream, transactionRequest.getContextId());
+      Context state = new StreamContext(stream, transactionRequest.getContextId());
 
       TpProcessResponse.Builder builder = TpProcessResponse.newBuilder();
       try {
