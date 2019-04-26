@@ -112,9 +112,6 @@ public class StreamContext implements Context {
         results.put(entry.getAddress(), entry.getData());
       }
     }
-    if (results.isEmpty()) {
-      throw new InternalError("State Error, no result found for get request:" + addresses.toString());
-    }
 
     return results;
   }
@@ -193,9 +190,6 @@ public class StreamContext implements Context {
       for (String entry : delResponse.getAddressesList()) {
         results.add(entry);
       }
-    }
-    if (results.isEmpty()) {
-      throw new InternalError("State Error, no addresses found for delete request:" + addresses.toString());
     }
 
     return results;
