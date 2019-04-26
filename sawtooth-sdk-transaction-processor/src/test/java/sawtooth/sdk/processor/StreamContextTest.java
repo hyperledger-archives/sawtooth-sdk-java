@@ -175,9 +175,8 @@ public class StreamContextTest {
     try {
       when(stream.send(any(), any())).thenReturn(emptyResponse);
       Collection<String> addressesDeleted = ctx.deleteState(deleteList);
-      fail("Returning an empty list of deleted addresses should have resulted in an InternalError");
     } catch (InternalError exc) {
-      // Expected
+      fail("Returning an empty list of deleted addresses should not result in an InternalError");
     } catch (InvalidTransactionException exc) {
       exc.printStackTrace();
       fail("Empty path should not generate an InvalidTransactionException");
@@ -254,9 +253,8 @@ public class StreamContextTest {
     try {
       when(stream.send(any(), any())).thenReturn(emptyResponse);
       Map<String, ByteString> resultMap = ctx.getState(getMap.keySet());
-      fail("Returning an empty list of deleted addresses should have resulted in an InternalError");
     } catch (InternalError exc) {
-      // Expected
+      fail("Returning an empty map of entries should not result in an InternalError");
     } catch (InvalidTransactionException exc) {
       exc.printStackTrace();
       fail("Empty path should not generate an InvalidTransactionException");
