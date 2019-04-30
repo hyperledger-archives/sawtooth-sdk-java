@@ -1,5 +1,6 @@
 package sawtooth.sdk.processor;
 
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -12,7 +13,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 
 import org.junit.Test;
@@ -25,11 +25,9 @@ import sawtooth.sdk.messaging.Stream;
 import sawtooth.sdk.processor.exceptions.InternalError;
 import sawtooth.sdk.processor.exceptions.InvalidTransactionException;
 import sawtooth.sdk.protobuf.TpEventAddResponse;
-import sawtooth.sdk.protobuf.TpEventAddResponse.Status;
 import sawtooth.sdk.protobuf.TpReceiptAddDataResponse;
 import sawtooth.sdk.protobuf.TpStateDeleteResponse;
 import sawtooth.sdk.protobuf.TpStateEntry;
-import sawtooth.sdk.protobuf.TpStateEntryOrBuilder;
 import sawtooth.sdk.protobuf.TpStateGetResponse;
 import sawtooth.sdk.protobuf.TpStateSetResponse;
 
@@ -175,6 +173,7 @@ public class StreamContextTest {
     try {
       when(stream.send(any(), any())).thenReturn(emptyResponse);
       Collection<String> addressesDeleted = ctx.deleteState(deleteList);
+      assertTrue("addressesDeleted should be empty", addressesDeleted.isEmpty());
     } catch (InternalError exc) {
       fail("Returning an empty list of deleted addresses should not result in an InternalError");
     } catch (InvalidTransactionException exc) {
@@ -253,6 +252,7 @@ public class StreamContextTest {
     try {
       when(stream.send(any(), any())).thenReturn(emptyResponse);
       Map<String, ByteString> resultMap = ctx.getState(getMap.keySet());
+      assertTrue("resultMap should be empty", resultMap.isEmpty());
     } catch (InternalError exc) {
       fail("Returning an empty map of entries should not result in an InternalError");
     } catch (InvalidTransactionException exc) {
