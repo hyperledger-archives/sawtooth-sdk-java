@@ -14,27 +14,29 @@
 
 package sawtooth.sdk.processor;
 
-import com.google.protobuf.ByteString;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import sawtooth.sdk.messaging.Future;
 import sawtooth.sdk.messaging.Stream;
 import sawtooth.sdk.messaging.ZmqStream;
-import sawtooth.sdk.processor.exceptions.InternalError;
-import sawtooth.sdk.processor.exceptions.InvalidTransactionException;
 import sawtooth.sdk.processor.exceptions.ValidatorConnectionError;
 import sawtooth.sdk.protobuf.Message;
 import sawtooth.sdk.protobuf.PingResponse;
 import sawtooth.sdk.protobuf.TpProcessRequest;
-import sawtooth.sdk.protobuf.TpProcessResponse;
 import sawtooth.sdk.protobuf.TpRegisterRequest;
 import sawtooth.sdk.protobuf.TpUnregisterRequest;
 import sawtooth.sdk.protobuf.TransactionHeader;
-
-import java.util.ArrayList;
-import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /** Sawtooth transaction processor. */
 public class TransactionProcessor implements Runnable {
@@ -42,53 +44,54 @@ public class TransactionProcessor implements Runnable {
   /** Logging class for this processor. */
   private static final Logger LOGGER = Logger.getLogger(TransactionProcessor.class.getName());
 
+  /**
+   * Default time to wait for the threads to shutdown.
+   */
+  public static final long DEFAULT_SHUTDOWN_TIMEOUT = 30;
+
   /** Streaming class for this processor. */
   private Stream stream;
 
   /** List of transaction handlers for this processor. */
-  private ArrayList<TransactionHandler> handlers;
-
-  /** The current message for this processor. */
-  private Message currentMessage;
+  private Map<String, Map<String, TransactionHandler>> handlers;
 
   /** Whether or not this processor has been registered. */
   private boolean registered;
+
+  /** Flag signifying whether or not this thread should keep running. */
+  private AtomicBoolean keepRunning;
+
+  /** An ExecutorService for this processor. */
+  private ExecutorService executorService;
+
+  /** The current maxOccupancy of this processor. */
+  private int maxOccupancy;
 
   /** Handles shutting down this transaction processor. */
   class Shutdown extends Thread {
     @Override
     public void run() {
       LOGGER.info("Start Shutdown of Transaction Processor.");
-      if (!TransactionProcessor.this.registered) {
-        return;
-      }
-      if (TransactionProcessor.this.getCurrentMessage() != null) {
-        LOGGER.info(TransactionProcessor.this.getCurrentMessage().toString());
-      }
+      stopProcessor();
       try {
-        TpUnregisterRequest unregisterRequest = TpUnregisterRequest.newBuilder().build();
-        LOGGER.info("Send TpUnregisterRequest");
-        Future fut = TransactionProcessor.this.stream.send(Message.MessageType.TP_UNREGISTER_REQUEST,
-            unregisterRequest.toByteString());
-        ByteString response = fut.getResult(1);
-        Message message = TransactionProcessor.this.getCurrentMessage();
-        if (message == null) {
-          message = TransactionProcessor.this.stream.receive(1);
+        if (TransactionProcessor.this.registered) {
+          TpUnregisterRequest unregisterRequest = TpUnregisterRequest.newBuilder().build();
+          LOGGER.info("Send TpUnregisterRequest");
+          Future fut = TransactionProcessor.this.stream.send(Message.MessageType.TP_UNREGISTER_REQUEST,
+              unregisterRequest.toByteString());
+          fut.getResult(1);
         }
-        LOGGER.info("Finish processing any left over messages.");
-        while (message != null) {
-          TransactionHandler handler = TransactionProcessor.this.findHandler(message);
-          TransactionProcessor.process(message, TransactionProcessor.this.stream, handler);
-          message = TransactionProcessor.this.stream.receive(1);
-        }
+        executorService.shutdown();
+        executorService.awaitTermination(DEFAULT_SHUTDOWN_TIMEOUT, TimeUnit.SECONDS);
       } catch (InterruptedException ie) {
-        ie.printStackTrace();
+        LOGGER.log(Level.FINER, "Interrupted during shutdown", ie);
       } catch (TimeoutException ter) {
-        LOGGER.info("TimeoutException on shutdown");
+        LOGGER.log(Level.FINER, "TimeoutException on shutdown", ter);
       } catch (ValidatorConnectionError vce) {
         LOGGER.info(vce.toString());
       }
     }
+
   }
 
   /**
@@ -97,10 +100,27 @@ public class TransactionProcessor implements Runnable {
    */
   public TransactionProcessor(final String address) {
     this.stream = new ZmqStream(address);
-    this.handlers = new ArrayList<TransactionHandler>();
-    this.currentMessage = null;
+    this.handlers = Collections.synchronizedMap(new HashMap<>());
     this.registered = false;
+    this.keepRunning = new AtomicBoolean(true);
+    this.setMaxOccupancy(Runtime.getRuntime().availableProcessors());
+    this.executorService = Executors.newWorkStealingPool(getMaxOccupancy());
     Runtime.getRuntime().addShutdownHook(new Shutdown());
+  }
+
+  /**
+   * Finish processing any remaining messages.
+   * @throws TimeoutException timeout waiting for stream.receive(1)
+   */
+  private void flushMessages() throws TimeoutException {
+    Message message = stream.receive(1);
+    LOGGER.info("Finish processing any left over messages");
+    while (message != null) {
+      if (message.getMessageType() == Message.MessageType.TP_PROCESS_REQUEST) {
+        submitTaskForMessage(message);
+      }
+      message = stream.receive(1);
+    }
   }
 
   /**
@@ -109,63 +129,45 @@ public class TransactionProcessor implements Runnable {
    */
   public final void addHandler(final TransactionHandler handler) {
     TpRegisterRequest registerRequest = TpRegisterRequest.newBuilder().setFamily(handler.transactionFamilyName())
-        .addAllNamespaces(handler.getNameSpaces()).setVersion(handler.getVersion()).setMaxOccupancy(1).build();
+        .addAllNamespaces(handler.getNameSpaces()).setVersion(handler.getVersion()).setMaxOccupancy(getMaxOccupancy())
+        .build();
     try {
       Future fut = this.stream.send(Message.MessageType.TP_REGISTER_REQUEST, registerRequest.toByteString());
       fut.getResult();
       this.registered = true;
-      this.handlers.add(handler);
+      String version = handler.getVersion();
+      String family = handler.transactionFamilyName();
+      Map<String, TransactionHandler> handlerMap = this.handlers.putIfAbsent(family,
+          Collections.synchronizedMap(new HashMap<String, TransactionHandler>()));
+      handlerMap.putIfAbsent(version, handler);
     } catch (InterruptedException ie) {
-      ie.printStackTrace();
+      LOGGER.log(Level.FINER, "Interrupted while sending TP_REGISTER_REQUEST");
     } catch (ValidatorConnectionError vce) {
       LOGGER.info(vce.toString());
     }
   }
 
   /**
-   * Get the current message that is being processed.
-   * @return the current message
+   * Getter for maxOccupancy.
+   * @return the current maxOccupancy of this processor
    */
-  private Message getCurrentMessage() {
-    return this.currentMessage;
+  public int getMaxOccupancy() {
+    return maxOccupancy;
   }
 
   /**
-   * Used to process a message.
-   * @param message The Message to process.
-   * @param stream  The Stream to use to send back responses.
-   * @param handler The handler that should be used to process the message.
+   * Setter for maxOccupancy.
+   * @param max maximum parallelism currently for this processor
    */
-  private static void process(final Message message, final Stream stream, final TransactionHandler handler) {
-    try {
-      TpProcessRequest transactionRequest = TpProcessRequest.parseFrom(message.getContent());
-      Context state = new StreamContext(stream, transactionRequest.getContextId());
+  public void setMaxOccupancy(final int max) {
+    this.maxOccupancy = max;
+  }
 
-      TpProcessResponse.Builder builder = TpProcessResponse.newBuilder();
-      try {
-        handler.apply(transactionRequest, state);
-        builder.setStatus(TpProcessResponse.Status.OK);
-      } catch (InvalidTransactionException ite) {
-        LOGGER.log(Level.WARNING, "Invalid Transaction: " + ite.toString());
-        builder.setStatus(TpProcessResponse.Status.INVALID_TRANSACTION);
-        builder.setMessage(ite.getMessage());
-        if (ite.getExtendedData() != null) {
-          builder.setExtendedData(ByteString.copyFrom(ite.getExtendedData()));
-        }
-      } catch (InternalError ie) {
-        LOGGER.log(Level.WARNING, "State Exception!: " + ie.toString());
-        builder.setStatus(TpProcessResponse.Status.INTERNAL_ERROR);
-        builder.setMessage(ie.getMessage());
-        if (ie.getExtendedData() != null) {
-          builder.setExtendedData(ByteString.copyFrom(ie.getExtendedData()));
-        }
-      }
-      stream.sendBack(Message.MessageType.TP_PROCESS_RESPONSE, message.getCorrelationId(),
-          builder.build().toByteString());
-
-    } catch (InvalidProtocolBufferException ipbe) {
-      LOGGER.info("Received Bytestring that wasn't requested that isn't TransactionProcessRequest");
-    }
+  /**
+   * Signal that this thread should stop.
+   */
+  public void stopProcessor() {
+    this.keepRunning.compareAndSet(true, false);
   }
 
   /**
@@ -176,66 +178,95 @@ public class TransactionProcessor implements Runnable {
    */
   private TransactionHandler findHandler(final Message message) {
     try {
-      TpProcessRequest transactionRequest = TpProcessRequest.parseFrom(this.currentMessage.getContent());
+      TpProcessRequest transactionRequest = TpProcessRequest.parseFrom(message.getContent());
       TransactionHeader header = transactionRequest.getHeader();
-      for (int i = 0; i < this.handlers.size(); i++) {
-        TransactionHandler handler = this.handlers.get(i);
-        if (header.getFamilyName().equals(handler.transactionFamilyName())
-            && header.getFamilyVersion().equals(handler.getVersion())) {
-          return handler;
+      String familyName = header.getFamilyName();
+      String familyVersion = header.getFamilyVersion();
+      if (handlers.containsKey(familyName)) {
+        Map<String, TransactionHandler> familyHandlers = handlers.get(familyName);
+        if (familyHandlers.containsKey(familyVersion)) {
+          return familyHandlers.get(familyVersion);
         }
       }
       LOGGER.info("Missing handler for header: " + header.toString());
     } catch (InvalidProtocolBufferException ipbe) {
-      LOGGER.info("Received Message that isn't a TransactionProcessRequest");
-      ipbe.printStackTrace();
+      LOGGER.log(Level.INFO, "Received Message is not a TransactionProcessRequest", ipbe);
     }
     return null;
   }
 
+  /**
+   * Find a handler for this message and submit a new task for it. If no handler
+   * is found ignore and return.
+   * @param message message to process
+   */
+  private void submitTaskForMessage(final Message message) {
+    TransactionHandler handler = findHandler(message);
+    if (handler == null) {
+      return;
+    }
+    TransactionHandlerTask task = new TransactionHandlerTask(message, this.stream, handler);
+    executorService.submit(task);
+  }
+
+  /**
+   * Respond to a ping request.
+   * @param pingMessage incoming ping
+   */
+  private void respondToPing(final Message pingMessage) {
+    LOGGER.log(Level.FINE, "Received Ping Message");
+    PingResponse pingResponse = PingResponse.newBuilder().build();
+    this.stream.sendBack(Message.MessageType.PING_RESPONSE, pingMessage.getCorrelationId(),
+        pingResponse.toByteString());
+  }
+
   @Override
   public final void run() {
-    while (true) {
+    while (keepRunning.get()) {
+      Message currentMessage;
       if (!this.handlers.isEmpty()) {
-        this.currentMessage = this.stream.receive();
-        if (this.currentMessage != null) {
-          if (this.currentMessage.getMessageType() == Message.MessageType.PING_REQUEST) {
-            LOGGER.info("Recieved Ping Message.");
-            PingResponse pingResponse = PingResponse.newBuilder().build();
-            this.stream.sendBack(Message.MessageType.PING_RESPONSE, this.currentMessage.getCorrelationId(),
-                pingResponse.toByteString());
-            this.currentMessage = null;
-          } else if (this.currentMessage.getMessageType() == Message.MessageType.TP_PROCESS_REQUEST) {
-            TransactionHandler handler = this.findHandler(this.currentMessage);
-            if (handler == null) {
-              break;
-            }
-            TransactionProcessor.process(this.currentMessage, this.stream, handler);
-            this.currentMessage = null;
+        currentMessage = this.stream.receive();
+        if (currentMessage != null) {
+          if (currentMessage.getMessageType() == Message.MessageType.PING_REQUEST) {
+            respondToPing(currentMessage);
+          } else if (currentMessage.getMessageType() == Message.MessageType.TP_PROCESS_REQUEST) {
+            submitTaskForMessage(currentMessage);
           } else {
-            LOGGER.info("Unknown Message Type: " + this.currentMessage.getMessageType());
-            this.currentMessage = null;
+            LOGGER.info("Unknown Message Type: " + currentMessage.getMessageType());
           }
         } else {
           // Disconnect
           LOGGER.info("The Validator disconnected, trying to register.");
-          this.registered = false;
-          for (int i = 0; i < this.handlers.size(); i++) {
-            TransactionHandler handler = this.handlers.get(i);
-            TpRegisterRequest registerRequest = TpRegisterRequest.newBuilder()
-                .setFamily(handler.transactionFamilyName()).addAllNamespaces(handler.getNameSpaces())
-                .setVersion(handler.getVersion()).build();
+          registerHandlers();
+        }
+      }
+    }
+    try {
+      flushMessages();
+    } catch (TimeoutException exc) {
+      // We are exiting so log the exception and go away
+      LOGGER.log(Level.FINE, exc.getMessage());
+    }
+  }
 
-            try {
-              Future fut = this.stream.send(Message.MessageType.TP_REGISTER_REQUEST, registerRequest.toByteString());
-              fut.getResult();
-              this.registered = true;
-            } catch (InterruptedException ie) {
-              LOGGER.log(Level.WARNING, ie.toString());
-            } catch (ValidatorConnectionError vce) {
-              LOGGER.log(Level.WARNING, vce.toString());
-            }
-          }
+  /**
+   * Send a registration request for all handlers in this processor.
+   */
+  private void registerHandlers() {
+    this.registered = false;
+    for (String family : this.handlers.keySet()) {
+      Map<String, TransactionHandler> handlerMap = this.handlers.get(family);
+      for (TransactionHandler handler : handlerMap.values()) {
+        TpRegisterRequest registerRequest = TpRegisterRequest.newBuilder().setFamily(handler.transactionFamilyName())
+            .addAllNamespaces(handler.getNameSpaces()).setVersion(handler.getVersion()).build();
+        try {
+          Future fut = this.stream.send(Message.MessageType.TP_REGISTER_REQUEST, registerRequest.toByteString());
+          fut.getResult();
+          this.registered = true;
+        } catch (InterruptedException ie) {
+          LOGGER.log(Level.WARNING, "Interrupted while registering TransactionHandler", ie);
+        } catch (ValidatorConnectionError vce) {
+          LOGGER.log(Level.WARNING, vce.toString());
         }
       }
     }
