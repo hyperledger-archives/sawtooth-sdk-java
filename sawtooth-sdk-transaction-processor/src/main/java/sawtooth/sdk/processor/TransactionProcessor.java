@@ -68,9 +68,8 @@ public class TransactionProcessor implements Runnable {
       try {
         TpUnregisterRequest unregisterRequest = TpUnregisterRequest.newBuilder().build();
         LOGGER.info("Send TpUnregisterRequest");
-        Future fut =
-            TransactionProcessor.this.stream.send(
-                Message.MessageType.TP_UNREGISTER_REQUEST, unregisterRequest.toByteString());
+        Future fut = TransactionProcessor.this.stream.send(Message.MessageType.TP_UNREGISTER_REQUEST,
+            unregisterRequest.toByteString());
         ByteString response = fut.getResult(1);
         Message message = TransactionProcessor.this.getCurrentMessage();
         if (message == null) {
@@ -94,7 +93,6 @@ public class TransactionProcessor implements Runnable {
 
   /**
    * constructor.
-   *
    * @param address the zmq address
    */
   public TransactionProcessor(final String address) {
@@ -107,20 +105,13 @@ public class TransactionProcessor implements Runnable {
 
   /**
    * add a handler that will be run from within the run method.
-   *
    * @param handler implements that TransactionHandler interface
    */
   public final void addHandler(final TransactionHandler handler) {
-    TpRegisterRequest registerRequest =
-        TpRegisterRequest.newBuilder()
-            .setFamily(handler.transactionFamilyName())
-            .addAllNamespaces(handler.getNameSpaces())
-            .setVersion(handler.getVersion())
-            .setMaxOccupancy(1)
-            .build();
+    TpRegisterRequest registerRequest = TpRegisterRequest.newBuilder().setFamily(handler.transactionFamilyName())
+        .addAllNamespaces(handler.getNameSpaces()).setVersion(handler.getVersion()).setMaxOccupancy(1).build();
     try {
-      Future fut =
-          this.stream.send(Message.MessageType.TP_REGISTER_REQUEST, registerRequest.toByteString());
+      Future fut = this.stream.send(Message.MessageType.TP_REGISTER_REQUEST, registerRequest.toByteString());
       fut.getResult();
       this.registered = true;
       this.handlers.add(handler);
@@ -133,7 +124,6 @@ public class TransactionProcessor implements Runnable {
 
   /**
    * Get the current message that is being processed.
-   *
    * @return the current message
    */
   private Message getCurrentMessage() {
@@ -142,13 +132,11 @@ public class TransactionProcessor implements Runnable {
 
   /**
    * Used to process a message.
-   *
    * @param message The Message to process.
-   * @param stream The Stream to use to send back responses.
+   * @param stream  The Stream to use to send back responses.
    * @param handler The handler that should be used to process the message.
    */
-  private static void process(
-      final Message message, final Stream stream, final TransactionHandler handler) {
+  private static void process(final Message message, final Stream stream, final TransactionHandler handler) {
     try {
       TpProcessRequest transactionRequest = TpProcessRequest.parseFrom(message.getContent());
       Context state = new StreamContext(stream, transactionRequest.getContextId());
@@ -172,9 +160,7 @@ public class TransactionProcessor implements Runnable {
           builder.setExtendedData(ByteString.copyFrom(ie.getExtendedData()));
         }
       }
-      stream.sendBack(
-          Message.MessageType.TP_PROCESS_RESPONSE,
-          message.getCorrelationId(),
+      stream.sendBack(Message.MessageType.TP_PROCESS_RESPONSE, message.getCorrelationId(),
           builder.build().toByteString());
 
     } catch (InvalidProtocolBufferException ipbe) {
@@ -184,15 +170,13 @@ public class TransactionProcessor implements Runnable {
 
   /**
    * Find the handler that should be used to process the given message.
-   *
-   * @param message The message that has the TpProcessRequest that the header that will be checked
-   *     against the handler.
+   * @param message The message that has the TpProcessRequest that the header that
+   *                will be checked against the handler.
    * @return the handler that should be used to processor the given message
    */
   private TransactionHandler findHandler(final Message message) {
     try {
-      TpProcessRequest transactionRequest =
-          TpProcessRequest.parseFrom(this.currentMessage.getContent());
+      TpProcessRequest transactionRequest = TpProcessRequest.parseFrom(this.currentMessage.getContent());
       TransactionHeader header = transactionRequest.getHeader();
       for (int i = 0; i < this.handlers.size(); i++) {
         TransactionHandler handler = this.handlers.get(i);
@@ -218,13 +202,10 @@ public class TransactionProcessor implements Runnable {
           if (this.currentMessage.getMessageType() == Message.MessageType.PING_REQUEST) {
             LOGGER.info("Recieved Ping Message.");
             PingResponse pingResponse = PingResponse.newBuilder().build();
-            this.stream.sendBack(
-                Message.MessageType.PING_RESPONSE,
-                this.currentMessage.getCorrelationId(),
+            this.stream.sendBack(Message.MessageType.PING_RESPONSE, this.currentMessage.getCorrelationId(),
                 pingResponse.toByteString());
             this.currentMessage = null;
-          } else if (this.currentMessage.getMessageType()
-              == Message.MessageType.TP_PROCESS_REQUEST) {
+          } else if (this.currentMessage.getMessageType() == Message.MessageType.TP_PROCESS_REQUEST) {
             TransactionHandler handler = this.findHandler(this.currentMessage);
             if (handler == null) {
               break;
@@ -241,17 +222,12 @@ public class TransactionProcessor implements Runnable {
           this.registered = false;
           for (int i = 0; i < this.handlers.size(); i++) {
             TransactionHandler handler = this.handlers.get(i);
-            TpRegisterRequest registerRequest =
-                TpRegisterRequest.newBuilder()
-                    .setFamily(handler.transactionFamilyName())
-                    .addAllNamespaces(handler.getNameSpaces())
-                    .setVersion(handler.getVersion())
-                    .build();
+            TpRegisterRequest registerRequest = TpRegisterRequest.newBuilder()
+                .setFamily(handler.transactionFamilyName()).addAllNamespaces(handler.getNameSpaces())
+                .setVersion(handler.getVersion()).build();
 
             try {
-              Future fut =
-                  this.stream.send(
-                      Message.MessageType.TP_REGISTER_REQUEST, registerRequest.toByteString());
+              Future fut = this.stream.send(Message.MessageType.TP_REGISTER_REQUEST, registerRequest.toByteString());
               fut.getResult();
               this.registered = true;
             } catch (InterruptedException ie) {
