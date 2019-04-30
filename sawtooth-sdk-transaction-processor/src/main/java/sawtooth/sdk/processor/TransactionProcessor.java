@@ -67,31 +67,20 @@ public class TransactionProcessor implements Runnable {
   /** The current maxOccupancy of this processor. */
   private int maxOccupancy;
 
-  /** Handles shutting down this transaction processor. */
-  class Shutdown extends Thread {
-    @Override
-    public void run() {
-      LOGGER.info("Start Shutdown of Transaction Processor.");
-      stopProcessor();
-      try {
-        if (TransactionProcessor.this.registered.get()) {
-          TpUnregisterRequest unregisterRequest = TpUnregisterRequest.newBuilder().build();
-          LOGGER.info("Send TpUnregisterRequest");
-          Future fut = TransactionProcessor.this.stream.send(Message.MessageType.TP_UNREGISTER_REQUEST,
-              unregisterRequest.toByteString());
-          fut.getResult(1);
-        }
-        executorService.shutdown();
-        executorService.awaitTermination(DEFAULT_SHUTDOWN_TIMEOUT, TimeUnit.SECONDS);
-      } catch (InterruptedException ie) {
-        LOGGER.log(Level.FINER, "Interrupted during shutdown", ie);
-      } catch (TimeoutException ter) {
-        LOGGER.log(Level.FINER, "TimeoutException on shutdown", ter);
-      } catch (ValidatorConnectionError vce) {
-        LOGGER.info(vce.toString());
-      }
+  /**
+   * Send an unregister request to the validator.
+   * @throws InterruptedException     thread has been interrupted
+   * @throws TimeoutException         unregister request has timed out.
+   * @throws ValidatorConnectionError lost connection with the validator
+   */
+  private void unregister() throws InterruptedException, TimeoutException, ValidatorConnectionError {
+    if (TransactionProcessor.this.registered.get()) {
+      TpUnregisterRequest unregisterRequest = TpUnregisterRequest.newBuilder().build();
+      LOGGER.info("Send TpUnregisterRequest");
+      Future fut = TransactionProcessor.this.stream.send(Message.MessageType.TP_UNREGISTER_REQUEST,
+          unregisterRequest.toByteString());
+      fut.getResult(1);
     }
-
   }
 
   /**
@@ -105,7 +94,12 @@ public class TransactionProcessor implements Runnable {
     this.keepRunning = new AtomicBoolean(true);
     this.setMaxOccupancy(Runtime.getRuntime().availableProcessors());
     this.executorService = Executors.newWorkStealingPool(getMaxOccupancy());
-    Runtime.getRuntime().addShutdownHook(new Shutdown());
+    Runtime.getRuntime().addShutdownHook(new Thread() {
+      @Override
+      public void run() {
+        stopProcessor();
+      }
+    });
   }
 
   /**
@@ -165,6 +159,15 @@ public class TransactionProcessor implements Runnable {
    * Signal that this thread should stop.
    */
   public void stopProcessor() {
+    try {
+      unregister();
+    } catch (InterruptedException exc) {
+      LOGGER.log(Level.INFO, "Interrupted while unregistering", exc);
+    } catch (TimeoutException exc) {
+      LOGGER.log(Level.INFO, "Timeout while unregistering", exc);
+    } catch (ValidatorConnectionError exc) {
+      LOGGER.log(Level.INFO, "Connection error while unregistering", exc);
+    }
     this.keepRunning.compareAndSet(true, false);
   }
 
@@ -201,6 +204,7 @@ public class TransactionProcessor implements Runnable {
   private void submitTaskForMessage(final Message message) {
     TransactionHandler handler = findHandler(message);
     if (handler == null) {
+      // No handler available for this message, noop
       return;
     }
     TransactionHandlerTask task = new TransactionHandlerTask(message, this.stream, handler);
@@ -242,9 +246,13 @@ public class TransactionProcessor implements Runnable {
     }
     try {
       flushMessages();
+      executorService.shutdown();
+      executorService.awaitTermination(DEFAULT_SHUTDOWN_TIMEOUT, TimeUnit.SECONDS);
     } catch (TimeoutException exc) {
       // We are exiting so log the exception and go away
       LOGGER.log(Level.FINE, exc.getMessage());
+    } catch (InterruptedException exc) {
+      LOGGER.log(Level.FINER, "Interrupted during shutdown", exc);
     }
   }
 
