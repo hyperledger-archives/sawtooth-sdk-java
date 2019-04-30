@@ -56,7 +56,7 @@ public class TransactionProcessor implements Runnable {
   private Map<String, Map<String, TransactionHandler>> handlers;
 
   /** Whether or not this processor has been registered. */
-  private boolean registered;
+  private AtomicBoolean registered;
 
   /** Flag signifying whether or not this thread should keep running. */
   private AtomicBoolean keepRunning;
@@ -74,7 +74,7 @@ public class TransactionProcessor implements Runnable {
       LOGGER.info("Start Shutdown of Transaction Processor.");
       stopProcessor();
       try {
-        if (TransactionProcessor.this.registered) {
+        if (TransactionProcessor.this.registered.get()) {
           TpUnregisterRequest unregisterRequest = TpUnregisterRequest.newBuilder().build();
           LOGGER.info("Send TpUnregisterRequest");
           Future fut = TransactionProcessor.this.stream.send(Message.MessageType.TP_UNREGISTER_REQUEST,
@@ -101,7 +101,7 @@ public class TransactionProcessor implements Runnable {
   public TransactionProcessor(final String address) {
     this.stream = new ZmqStream(address);
     this.handlers = Collections.synchronizedMap(new HashMap<>());
-    this.registered = false;
+    this.registered = new AtomicBoolean(false);
     this.keepRunning = new AtomicBoolean(true);
     this.setMaxOccupancy(Runtime.getRuntime().availableProcessors());
     this.executorService = Executors.newWorkStealingPool(getMaxOccupancy());
@@ -128,22 +128,20 @@ public class TransactionProcessor implements Runnable {
    * @param handler implements that TransactionHandler interface
    */
   public final void addHandler(final TransactionHandler handler) {
-    TpRegisterRequest registerRequest = TpRegisterRequest.newBuilder().setFamily(handler.transactionFamilyName())
-        .addAllNamespaces(handler.getNameSpaces()).setVersion(handler.getVersion()).setMaxOccupancy(getMaxOccupancy())
-        .build();
-    try {
-      Future fut = this.stream.send(Message.MessageType.TP_REGISTER_REQUEST, registerRequest.toByteString());
-      fut.getResult();
-      this.registered = true;
-      String version = handler.getVersion();
-      String family = handler.transactionFamilyName();
-      Map<String, TransactionHandler> handlerMap = this.handlers.putIfAbsent(family,
-          Collections.synchronizedMap(new HashMap<String, TransactionHandler>()));
-      handlerMap.putIfAbsent(version, handler);
-    } catch (InterruptedException ie) {
-      LOGGER.log(Level.FINER, "Interrupted while sending TP_REGISTER_REQUEST");
-    } catch (ValidatorConnectionError vce) {
-      LOGGER.info(vce.toString());
+    String version = handler.getVersion();
+    String family = handler.transactionFamilyName();
+    Map<String, TransactionHandler> newFamilyMap = Collections.synchronizedMap(new HashMap<>());
+    Map<String, TransactionHandler> currentFamilyMap = this.handlers.putIfAbsent(family, newFamilyMap);
+    if (currentFamilyMap == null) {
+      currentFamilyMap = newFamilyMap;
+    }
+    TransactionHandler currentHandler = currentFamilyMap.get(version);
+    if (currentHandler == null || !currentHandler.equals(handler)) {
+      // never heard of this family, this version of the family before, or this is a
+      // different
+      // handler for this family and version
+      this.registered.compareAndSet(true, false);
+      currentFamilyMap.put(version, handler);
     }
   }
 
@@ -223,6 +221,7 @@ public class TransactionProcessor implements Runnable {
   @Override
   public final void run() {
     while (keepRunning.get()) {
+      registerHandlers();
       Message currentMessage;
       if (!this.handlers.isEmpty()) {
         currentMessage = this.stream.receive();
@@ -237,7 +236,7 @@ public class TransactionProcessor implements Runnable {
         } else {
           // Disconnect
           LOGGER.info("The Validator disconnected, trying to register.");
-          registerHandlers();
+          this.registered.compareAndSet(true, false);
         }
       }
     }
@@ -253,20 +252,21 @@ public class TransactionProcessor implements Runnable {
    * Send a registration request for all handlers in this processor.
    */
   private void registerHandlers() {
-    this.registered = false;
-    for (String family : this.handlers.keySet()) {
-      Map<String, TransactionHandler> handlerMap = this.handlers.get(family);
-      for (TransactionHandler handler : handlerMap.values()) {
-        TpRegisterRequest registerRequest = TpRegisterRequest.newBuilder().setFamily(handler.transactionFamilyName())
-            .addAllNamespaces(handler.getNameSpaces()).setVersion(handler.getVersion()).build();
-        try {
-          Future fut = this.stream.send(Message.MessageType.TP_REGISTER_REQUEST, registerRequest.toByteString());
-          fut.getResult();
-          this.registered = true;
-        } catch (InterruptedException ie) {
-          LOGGER.log(Level.WARNING, "Interrupted while registering TransactionHandler", ie);
-        } catch (ValidatorConnectionError vce) {
-          LOGGER.log(Level.WARNING, vce.toString());
+    if (!this.registered.get()) {
+      for (String family : this.handlers.keySet()) {
+        Map<String, TransactionHandler> handlerMap = this.handlers.get(family);
+        for (TransactionHandler handler : handlerMap.values()) {
+          TpRegisterRequest registerRequest = TpRegisterRequest.newBuilder().setFamily(handler.transactionFamilyName())
+              .addAllNamespaces(handler.getNameSpaces()).setVersion(handler.getVersion()).build();
+          try {
+            Future fut = this.stream.send(Message.MessageType.TP_REGISTER_REQUEST, registerRequest.toByteString());
+            fut.getResult();
+            this.registered.compareAndSet(false, true);
+          } catch (InterruptedException ie) {
+            LOGGER.log(Level.WARNING, "Interrupted while registering TransactionHandler", ie);
+          } catch (ValidatorConnectionError vce) {
+            LOGGER.log(Level.WARNING, vce.toString());
+          }
         }
       }
     }
