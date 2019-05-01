@@ -60,7 +60,7 @@ public class TransactionProcessor implements Runnable {
   private AtomicBoolean registered;
 
   /** Flag signifying whether or not this thread should keep running. */
-  private AtomicBoolean keepRunning;
+  private AtomicBoolean running;
 
   /** An ExecutorService for this processor. */
   private ExecutorService executorService;
@@ -101,7 +101,7 @@ public class TransactionProcessor implements Runnable {
     this.stream = customStream;
     this.handlers = Collections.synchronizedMap(new HashMap<>());
     this.registered = new AtomicBoolean(false);
-    this.keepRunning = new AtomicBoolean(true);
+    this.running = new AtomicBoolean(true);
     this.setMaxOccupancy(Runtime.getRuntime().availableProcessors());
     this.executorService = Executors.newWorkStealingPool(getMaxOccupancy());
     Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -171,7 +171,7 @@ public class TransactionProcessor implements Runnable {
     } catch (ValidatorConnectionError exc) {
       LOGGER.log(Level.INFO, "Connection error while unregistering", exc);
     }
-    this.keepRunning.compareAndSet(true, false);
+    this.running.compareAndSet(true, false);
   }
 
   /**
@@ -236,7 +236,7 @@ public class TransactionProcessor implements Runnable {
 
   @Override
   public final void run() {
-    while (keepRunning.get()) {
+    while (running.get()) {
       registerHandlers();
       Message currentMessage;
       if (!this.handlers.isEmpty()) {
