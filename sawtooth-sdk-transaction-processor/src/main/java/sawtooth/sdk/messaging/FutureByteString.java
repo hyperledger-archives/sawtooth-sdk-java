@@ -16,14 +16,13 @@ package sawtooth.sdk.messaging;
 
 import com.google.protobuf.ByteString;
 
-
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-/** A future that resolves to ByteString.
- *
+/**
+ * A future that resolves to ByteString.
  */
 public class FutureByteString implements Future {
   /**
@@ -48,8 +47,7 @@ public class FutureByteString implements Future {
 
   /**
    * Constructor.
-   * @param id created with Stream.generateId,
-   *                      to match future with it's result
+   * @param id created with Stream.generateId, to match future with it's result
    */
   public FutureByteString(final String id) {
     this.lock = new ReentrantLock();
@@ -79,11 +77,12 @@ public class FutureByteString implements Future {
   }
 
   /**
-   * Returns the ByteString result. If the timeout expires, throws TimeoutException.
+   * Returns the ByteString result. If the timeout expires, throws
+   * TimeoutException.
    * @param timeout time to wait for a result.
    * @return ByteString protobuf
    * @throws InterruptedException an interrupt happens during the method call.
-   * @throws TimeoutException the result is not received before the timeout.
+   * @throws TimeoutException     the result is not received before the timeout.
    */
   public final ByteString getResult(final long timeout) throws InterruptedException, TimeoutException {
     ByteString byteString = null;
@@ -131,8 +130,8 @@ public class FutureByteString implements Future {
     return answer;
   }
 
-  /** Get the value of the coorelation id.
-   *
+  /**
+   * Get the value of the coorelation id.
    * @return String coorelation id.
    */
   public final String getCorrelationId() {

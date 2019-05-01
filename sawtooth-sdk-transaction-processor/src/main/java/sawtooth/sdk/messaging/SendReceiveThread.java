@@ -36,7 +36,6 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-
 /**
  * An internal messaging implementation used by the Stream class.
  */
@@ -77,15 +76,14 @@ class SendReceiveThread implements Runnable {
    */
   private ZContext context;
 
-  /** Constructor.
-   *
-   * @param address The address to connect to.
-   * @param hashMap The futures to resolve.
+  /**
+   * Constructor.
+   * @param address  The address to connect to.
+   * @param hashMap  The futures to resolve.
    * @param receiver The incoming messages.
    */
-  SendReceiveThread(final String address,
-                           final ConcurrentHashMap<String, Future> hashMap,
-                           final LinkedBlockingQueue<MessageWrapper> receiver) {
+  SendReceiveThread(final String address, final ConcurrentHashMap<String, Future> hashMap,
+      final LinkedBlockingQueue<MessageWrapper> receiver) {
     super();
     this.url = address;
     this.futures = hashMap;
@@ -102,16 +100,16 @@ class SendReceiveThread implements Runnable {
      */
     private Message message;
 
-    /** Constructor.
-     *
+    /**
+     * Constructor.
      * @param msg The protobuf Message.
      */
     MessageWrapper(final Message msg) {
       this.message = msg;
     }
 
-    /** Return the Message associated with this MessageWrapper.
-     *
+    /**
+     * Return the Message associated with this MessageWrapper.
      * @return Message the message.
      */
     public Message getMessage() {
@@ -120,8 +118,8 @@ class SendReceiveThread implements Runnable {
   }
 
   /**
-   * DisconnectThread is run to handle the validator disconnecting on the other side of the ZMQ
-   * connection.
+   * DisconnectThread is run to handle the validator disconnecting on the other
+   * side of the ZMQ connection.
    */
   private class DisconnectThread extends Thread {
 
@@ -131,39 +129,40 @@ class SendReceiveThread implements Runnable {
     private LinkedBlockingQueue<MessageWrapper> receiveQueue;
 
     /**
-     *  Futures to be resolved.
+     * Futures to be resolved.
      */
     private ConcurrentHashMap<String, Future> futures;
 
-    /** Constructor.
-     *
+    /**
+     * Constructor.
      * @param receiver The queue that receives new messages.
-     * @param hashMap The futures that will be resolved.
+     * @param hashMap  The futures that will be resolved.
      */
     DisconnectThread(final LinkedBlockingQueue<MessageWrapper> receiver,
-                     final ConcurrentHashMap<String, Future> hashMap) {
+        final ConcurrentHashMap<String, Future> hashMap) {
       this.receiveQueue = receiveQueue;
       this.futures = futures;
     }
 
-    /** Put a key and associated value in the futures.
-     *
-     * @param key correlation id
+    /**
+     * Put a key and associated value in the futures.
+     * @param key   correlation id
      * @param value the future.
      */
     void putInFutures(final String key, final Future value) {
       this.futures.put(key, value);
     }
 
-    /** Clear the receiveQueue of all messages, in anticipation of sending an error message.
-     *
+    /**
+     * Clear the receiveQueue of all messages, in anticipation of sending an error
+     * message.
      */
     void clearReceiveQueue() {
       this.receiveQueue.clear();
     }
 
-    /** Put a message in the ReceiveQueue.
-     *
+    /**
+     * Put a message in the ReceiveQueue.
      * @param wrapper The message wrapper.
      * @throws InterruptedException An Interrupt happened during the method call.
      */
@@ -171,8 +170,8 @@ class SendReceiveThread implements Runnable {
       this.receiveQueue.put(wrapper);
     }
 
-    /** Return an enumeration of the coorelation ids.
-     *
+    /**
+     * Return an enumeration of the coorelation ids.
      * @return coorelation ids.
      */
     ConcurrentHashMap.KeySetView<String, Future> getFuturesKeySet() {
@@ -196,13 +195,12 @@ class SendReceiveThread implements Runnable {
      */
     private LinkedBlockingQueue<MessageWrapper> receiveQueue;
 
-    /** Constructor.
-     *
-     * @param hashMap The futures that will be resolved.
+    /**
+     * Constructor.
+     * @param hashMap  The futures that will be resolved.
      * @param receiver The new messages that will get added to.
      */
-    Receiver(final ConcurrentHashMap<String, Future> hashMap,
-             final LinkedBlockingQueue<MessageWrapper> receiver) {
+    Receiver(final ConcurrentHashMap<String, Future> hashMap, final LinkedBlockingQueue<MessageWrapper> receiver) {
       this.futures = hashMap;
       this.receiveQueue = receiver;
     }
@@ -259,7 +257,7 @@ class SendReceiveThread implements Runnable {
           if (event.getEvent() == ZMQ.EVENT_DISCONNECTED) {
             try {
               MessageWrapper disconnectMsg = new MessageWrapper(null);
-              for (String key: this.getFuturesKeySet()) {
+              for (String key : this.getFuturesKeySet()) {
                 Future future = new FutureError();
                 this.putInFutures(key, future);
               }
@@ -314,7 +312,5 @@ class SendReceiveThread implements Runnable {
     this.socket.close();
     this.context.destroy();
   }
-
-
 
 }
