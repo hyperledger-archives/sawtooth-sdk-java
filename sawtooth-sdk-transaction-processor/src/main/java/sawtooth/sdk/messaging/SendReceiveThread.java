@@ -224,7 +224,7 @@ class SendReceiveThread implements Runnable {
         if (this.futures.containsKey(message.getCorrelationId())) {
           Future future = this.futures.get(message.getCorrelationId());
           future.setResult(message.getContent());
-          this.futures.put(message.getCorrelationId(), future);
+          this.futures.remove(message.getCorrelationId(), future);
         } else {
           MessageWrapper wrapper = new MessageWrapper(message);
           this.receiveQueue.put(wrapper);
