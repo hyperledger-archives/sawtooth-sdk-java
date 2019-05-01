@@ -140,8 +140,8 @@ class SendReceiveThread implements Runnable {
      */
     DisconnectThread(final LinkedBlockingQueue<MessageWrapper> receiver,
         final ConcurrentHashMap<String, Future> hashMap) {
-      this.receiveQueue = receiveQueue;
-      this.futures = futures;
+      this.receiveQueue = SendReceiveThread.this.receiveQueue;
+      this.futures = SendReceiveThread.this.futures;
     }
 
     /**
