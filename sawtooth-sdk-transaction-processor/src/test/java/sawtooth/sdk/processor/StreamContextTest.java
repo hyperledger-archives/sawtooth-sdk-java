@@ -31,8 +31,34 @@ import sawtooth.sdk.protobuf.TpStateEntry;
 import sawtooth.sdk.protobuf.TpStateGetResponse;
 import sawtooth.sdk.protobuf.TpStateSetResponse;
 
+/* Copyright 2019 Hyperledger Sawtooth Contributors
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+------------------------------------------------------------------------------*/
 public class StreamContextTest {
 
+  /**
+   * This is a behavioral test of the TransactionHandlerTask. The following
+   * interactions are tested:
+   * <ul>
+   * <li>A valid transaction is handled and an OK response is expected</li>
+   * <li>An invalid transaction is handled and an INVALID_TRANSACTION response is
+   * expected</li>
+   * <li>A transaction which produces an InternalError is handled and an
+   * INTERNAL_ERROR response is expected</li>
+   * </ul>
+   * Finally there is a verification that exactly the expected number of calls to
+   * Stream.sendBack are made.
+   */
   @Test
   public void testAddEvent() {
     Stream stream = mock(Stream.class);

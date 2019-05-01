@@ -74,12 +74,12 @@ public class TransactionProcessor implements Runnable {
    * @throws ValidatorConnectionError lost connection with the validator
    */
   private void unregister() throws InterruptedException, TimeoutException, ValidatorConnectionError {
-    if (TransactionProcessor.this.registered.get()) {
+    if (this.registered.get()) {
       TpUnregisterRequest unregisterRequest = TpUnregisterRequest.newBuilder().build();
       LOGGER.info("Send TpUnregisterRequest");
-      Future fut = TransactionProcessor.this.stream.send(Message.MessageType.TP_UNREGISTER_REQUEST,
-          unregisterRequest.toByteString());
+      Future fut = this.stream.send(Message.MessageType.TP_UNREGISTER_REQUEST, unregisterRequest.toByteString());
       fut.getResult(1);
+      this.registered.compareAndSet(true, false);
     }
   }
 
@@ -88,7 +88,16 @@ public class TransactionProcessor implements Runnable {
    * @param address the zmq address
    */
   public TransactionProcessor(final String address) {
-    this.stream = new ZmqStream(address);
+    this(new ZmqStream(address));
+  }
+
+  /**
+   * TransactionProcessor with a custom Stream implementation primarily for unit
+   * testing at this time.
+   * @param customStream The custom stream implementation
+   */
+  public TransactionProcessor(final Stream customStream) {
+    this.stream = customStream;
     this.handlers = Collections.synchronizedMap(new HashMap<>());
     this.registered = new AtomicBoolean(false);
     this.keepRunning = new AtomicBoolean(true);
@@ -143,7 +152,7 @@ public class TransactionProcessor implements Runnable {
    * Getter for maxOccupancy.
    * @return the current maxOccupancy of this processor
    */
-  public int getMaxOccupancy() {
+  public final int getMaxOccupancy() {
     return maxOccupancy;
   }
 
@@ -151,14 +160,14 @@ public class TransactionProcessor implements Runnable {
    * Setter for maxOccupancy.
    * @param max maximum parallelism currently for this processor
    */
-  public void setMaxOccupancy(final int max) {
+  public final void setMaxOccupancy(final int max) {
     this.maxOccupancy = max;
   }
 
   /**
    * Signal that this thread should stop.
    */
-  public void stopProcessor() {
+  public final void stopProcessor() {
     try {
       unregister();
     } catch (InterruptedException exc) {
@@ -177,7 +186,7 @@ public class TransactionProcessor implements Runnable {
    *                will be checked against the handler.
    * @return the handler that should be used to processor the given message
    */
-  private TransactionHandler findHandler(final Message message) {
+  public final TransactionHandler findHandler(final Message message) {
     try {
       TpProcessRequest transactionRequest = TpProcessRequest.parseFrom(message.getContent());
       TransactionHeader header = transactionRequest.getHeader();
@@ -266,6 +275,8 @@ public class TransactionProcessor implements Runnable {
         for (TransactionHandler handler : handlerMap.values()) {
           TpRegisterRequest registerRequest = TpRegisterRequest.newBuilder().setFamily(handler.transactionFamilyName())
               .addAllNamespaces(handler.getNameSpaces()).setVersion(handler.getVersion()).build();
+          LOGGER.info(String.format("Registering handlers family=%s version=%s", handler.transactionFamilyName(),
+              handler.getVersion()));
           try {
             Future fut = this.stream.send(Message.MessageType.TP_REGISTER_REQUEST, registerRequest.toByteString());
             fut.getResult();
