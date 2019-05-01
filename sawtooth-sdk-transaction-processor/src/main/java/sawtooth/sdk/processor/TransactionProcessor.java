@@ -24,6 +24,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.AbstractMap.SimpleEntry;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
@@ -53,7 +54,7 @@ public class TransactionProcessor implements Runnable {
   private Stream stream;
 
   /** List of transaction handlers for this processor. */
-  private Map<String, Map<String, TransactionHandler>> handlers;
+  private Map<SimpleEntry<String, String>, TransactionHandler> handlers;
 
   /** Whether or not this processor has been registered. */
   private AtomicBoolean registered;
@@ -133,18 +134,11 @@ public class TransactionProcessor implements Runnable {
   public final void addHandler(final TransactionHandler handler) {
     String version = handler.getVersion();
     String family = handler.transactionFamilyName();
-    Map<String, TransactionHandler> newFamilyMap = Collections.synchronizedMap(new HashMap<>());
-    Map<String, TransactionHandler> currentFamilyMap = this.handlers.putIfAbsent(family, newFamilyMap);
-    if (currentFamilyMap == null) {
-      currentFamilyMap = newFamilyMap;
-    }
-    TransactionHandler currentHandler = currentFamilyMap.get(version);
-    if (currentHandler == null || !currentHandler.equals(handler)) {
-      // never heard of this family, this version of the family before, or this is a
-      // different
-      // handler for this family and version
+    SimpleEntry<String, String> handlerKey = new SimpleEntry<>(family, version);
+    TransactionHandler currentHandler = this.handlers.get(handlerKey);
+    if (currentHandler == null || !handler.equals(currentHandler)) {
+      this.handlers.put(handlerKey, handler);
       this.registered.compareAndSet(true, false);
-      currentFamilyMap.put(version, handler);
     }
   }
 
@@ -192,11 +186,9 @@ public class TransactionProcessor implements Runnable {
       TransactionHeader header = transactionRequest.getHeader();
       String familyName = header.getFamilyName();
       String familyVersion = header.getFamilyVersion();
-      if (handlers.containsKey(familyName)) {
-        Map<String, TransactionHandler> familyHandlers = handlers.get(familyName);
-        if (familyHandlers.containsKey(familyVersion)) {
-          return familyHandlers.get(familyVersion);
-        }
+      SimpleEntry<String, String> handlerKey = new SimpleEntry<>(familyName, familyVersion);
+      if (handlers.containsKey(handlerKey)) {
+        return handlers.get(handlerKey);
       }
       LOGGER.info("Missing handler for header: " + header.toString());
     } catch (InvalidProtocolBufferException ipbe) {
@@ -220,8 +212,8 @@ public class TransactionProcessor implements Runnable {
         TransactionHeader header = transactionRequest.getHeader();
         String familyName = header.getFamilyName();
         String familyVersion = header.getFamilyVersion();
-        LOGGER.log(Level.WARNING, String.format("No handler for message type: family=%s version=%s",
-            familyName, familyVersion));
+        LOGGER.log(Level.WARNING,
+            String.format("No handler for message type: family=%s version=%s", familyName, familyVersion));
       } catch (InvalidProtocolBufferException exc) {
         LOGGER.log(Level.WARNING, "Unparseable message", exc);
       }
@@ -281,22 +273,20 @@ public class TransactionProcessor implements Runnable {
    */
   private void registerHandlers() {
     if (!this.registered.get()) {
-      for (String family : this.handlers.keySet()) {
-        Map<String, TransactionHandler> handlerMap = this.handlers.get(family);
-        for (TransactionHandler handler : handlerMap.values()) {
-          TpRegisterRequest registerRequest = TpRegisterRequest.newBuilder().setFamily(handler.transactionFamilyName())
-              .addAllNamespaces(handler.getNameSpaces()).setVersion(handler.getVersion()).build();
-          LOGGER.info(String.format("Registering handlers family=%s version=%s", handler.transactionFamilyName(),
-              handler.getVersion()));
-          try {
-            Future fut = this.stream.send(Message.MessageType.TP_REGISTER_REQUEST, registerRequest.toByteString());
-            fut.getResult();
-            this.registered.compareAndSet(false, true);
-          } catch (InterruptedException ie) {
-            LOGGER.log(Level.WARNING, "Interrupted while registering TransactionHandler", ie);
-          } catch (ValidatorConnectionError vce) {
-            LOGGER.log(Level.WARNING, vce.toString());
-          }
+      for (SimpleEntry<String, String> handlerKey : this.handlers.keySet()) {
+        TransactionHandler handler = this.handlers.get(handlerKey);
+        TpRegisterRequest registerRequest = TpRegisterRequest.newBuilder().setFamily(handler.transactionFamilyName())
+            .addAllNamespaces(handler.getNameSpaces()).setVersion(handler.getVersion()).build();
+        LOGGER.info(String.format("Registering handlers family=%s version=%s", handler.transactionFamilyName(),
+            handler.getVersion()));
+        try {
+          Future fut = this.stream.send(Message.MessageType.TP_REGISTER_REQUEST, registerRequest.toByteString());
+          fut.getResult();
+          this.registered.compareAndSet(false, true);
+        } catch (InterruptedException ie) {
+          LOGGER.log(Level.WARNING, "Interrupted while registering TransactionHandler", ie);
+        } catch (ValidatorConnectionError vce) {
+          LOGGER.log(Level.WARNING, vce.toString());
         }
       }
     }
