@@ -214,6 +214,17 @@ public class TransactionProcessor implements Runnable {
     TransactionHandler handler = findHandler(message);
     if (handler == null) {
       // No handler available for this message, noop
+      TpProcessRequest transactionRequest;
+      try {
+        transactionRequest = TpProcessRequest.parseFrom(message.getContent());
+        TransactionHeader header = transactionRequest.getHeader();
+        String familyName = header.getFamilyName();
+        String familyVersion = header.getFamilyVersion();
+        LOGGER.log(Level.WARNING, String.format("No handler for message type: family=%s version=%s",
+            familyName, familyVersion));
+      } catch (InvalidProtocolBufferException exc) {
+        LOGGER.log(Level.WARNING, "Unparseable message", exc);
+      }
       return;
     }
     TransactionHandlerTask task = new TransactionHandlerTask(message, this.stream, handler);
