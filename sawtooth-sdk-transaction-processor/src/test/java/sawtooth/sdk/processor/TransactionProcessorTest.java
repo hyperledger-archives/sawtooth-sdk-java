@@ -133,30 +133,19 @@ public class TransactionProcessorTest {
     when(handler.getVersion()).thenReturn(testVersion);
     
     tp.addHandler(handler);
-    ExecutorService svc = Executors.newFixedThreadPool(1);
-    svc.submit(tp);
-
-    // Wait a moment for things to execute before shutting down
-    synchronized (svc) {
-      try {
-        svc.wait(1000);
-      } catch (InterruptedException exc) {
-        fail("Interrupted while waiting!");
-      }
-    }
+    
     try {
+      tp.handleMessage(msg);
+      tp.handleMessage(msgNoFamily);
+      tp.handleMessage(null);
+      tp.handleMessage(pingMessage);
+    
       verify(handler,times(1)).apply(any(), any());
-      verify(stream,atLeast(2)).sendBack(any(), any(), any());
+      verify(stream,times(2)).sendBack(any(), any(), any());
     } catch (InvalidTransactionException | InternalError exc1) {
       fail("No Exceptions should be thrown");
     } 
     tp.stopProcessor();
-    svc.shutdown();
-    try {
-      svc.awaitTermination(30, TimeUnit.SECONDS);
-    } catch (InterruptedException exc) {
-      fail("The shutdown was interrupted!");
-    }
   }
 
   @Test

@@ -92,34 +92,8 @@ class SendReceiveThread implements Runnable {
   }
 
   /**
-   * Inner class for passing messages.
-   */
-  class MessageWrapper {
-    /**
-     * The protobuf Message.
-     */
-    private Message message;
-
-    /**
-     * Constructor.
-     * @param msg The protobuf Message.
-     */
-    MessageWrapper(final Message msg) {
-      this.message = msg;
-    }
-
-    /**
-     * Return the Message associated with this MessageWrapper.
-     * @return Message the message.
-     */
-    public Message getMessage() {
-      return message;
-    }
-  }
-
-  /**
-   * DisconnectThread is run to handle the validator disconnecting on the other
-   * side of the ZMQ connection.
+   * DisconnectThread is run to handle the validator disconnecting on the other side of the ZMQ
+   * connection.
    */
   private class DisconnectThread extends Thread {
 

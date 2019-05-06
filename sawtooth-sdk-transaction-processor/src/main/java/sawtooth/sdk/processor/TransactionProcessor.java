@@ -17,6 +17,7 @@ package sawtooth.sdk.processor;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -29,6 +30,7 @@ import java.util.AbstractMap.SimpleEntry;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import sawtooth.sdk.messaging.Future;
+import sawtooth.sdk.messaging.MessageWrapper;
 import sawtooth.sdk.messaging.Stream;
 import sawtooth.sdk.messaging.ZmqStream;
 import sawtooth.sdk.processor.exceptions.ValidatorConnectionError;
@@ -41,6 +43,11 @@ import sawtooth.sdk.protobuf.TransactionHeader;
 
 /** Sawtooth transaction processor. */
 public class TransactionProcessor implements Runnable {
+
+  /**
+   * Default poll wait time in milliseconds.
+   */
+  private static final int DEFAULT_POLL_WAIT_TIME = 100;
 
   /** Logging class for this processor. */
   private static final Logger LOGGER = Logger.getLogger(TransactionProcessor.class.getName());
@@ -135,10 +142,13 @@ public class TransactionProcessor implements Runnable {
     String version = handler.getVersion();
     String family = handler.transactionFamilyName();
     SimpleEntry<String, String> handlerKey = new SimpleEntry<>(family, version);
-    TransactionHandler currentHandler = this.handlers.get(handlerKey);
-    if (currentHandler == null || !handler.equals(currentHandler)) {
-      this.handlers.put(handlerKey, handler);
-      this.registered.compareAndSet(true, false);
+    synchronized (this.handlers) {
+      TransactionHandler currentHandler = this.handlers.get(handlerKey);
+      if (currentHandler == null || !handler.equals(currentHandler)) {
+        this.handlers.put(handlerKey, handler);
+        this.handlers.notifyAll();
+        this.registered.compareAndSet(true, false);
+      }
     }
   }
 
@@ -187,8 +197,10 @@ public class TransactionProcessor implements Runnable {
       String familyName = header.getFamilyName();
       String familyVersion = header.getFamilyVersion();
       SimpleEntry<String, String> handlerKey = new SimpleEntry<>(familyName, familyVersion);
-      if (handlers.containsKey(handlerKey)) {
-        return handlers.get(handlerKey);
+      synchronized (this.handlers) {
+        if (handlers.containsKey(handlerKey)) {
+          return handlers.get(handlerKey);
+        }
       }
       LOGGER.info("Missing handler for header: " + header.toString());
     } catch (InvalidProtocolBufferException ipbe) {
@@ -236,23 +248,27 @@ public class TransactionProcessor implements Runnable {
 
   @Override
   public final void run() {
+    BlockingQueue<MessageWrapper> receiveQueue = this.stream.getReceiveQueue();
     while (running.get()) {
-      registerHandlers();
-      Message currentMessage;
-      if (!this.handlers.isEmpty()) {
-        currentMessage = this.stream.receive();
-        if (currentMessage != null) {
-          if (currentMessage.getMessageType() == Message.MessageType.PING_REQUEST) {
-            respondToPing(currentMessage);
-          } else if (currentMessage.getMessageType() == Message.MessageType.TP_PROCESS_REQUEST) {
-            submitTaskForMessage(currentMessage);
-          } else {
-            LOGGER.info("Unknown Message Type: " + currentMessage.getMessageType());
+      synchronized (this.handlers) {
+        registerHandlers();
+        if (!this.handlers.isEmpty()) {
+          try {
+            MessageWrapper msgWrapper = receiveQueue.poll(DEFAULT_POLL_WAIT_TIME, TimeUnit.MILLISECONDS);
+            if (msgWrapper != null) {
+              Message currentMessage = msgWrapper.getMessage();
+              handleMessage(currentMessage);
+            }
+          } catch (InterruptedException exc) {
+            LOGGER.log(Level.WARNING, "Interrupted while waiting for message", exc);
           }
         } else {
-          // Disconnect
-          LOGGER.info("The Validator disconnected, trying to register.");
-          this.registered.compareAndSet(true, false);
+          try {
+            // Wait until a handler has been added
+            wait();
+          } catch (InterruptedException exc) {
+            LOGGER.log(Level.WARNING, "Interrupted while waiting for handlers", exc);
+          }
         }
       }
     }
@@ -269,24 +285,46 @@ public class TransactionProcessor implements Runnable {
   }
 
   /**
+   * Process exactly one message.
+   * @param currentMessage The message to be processed.
+   */
+  protected final void handleMessage(final Message currentMessage) {
+    if (currentMessage != null) {
+      if (currentMessage.getMessageType() == Message.MessageType.PING_REQUEST) {
+        respondToPing(currentMessage);
+      } else if (currentMessage.getMessageType() == Message.MessageType.TP_PROCESS_REQUEST) {
+        submitTaskForMessage(currentMessage);
+      } else {
+        LOGGER.info("Unknown Message Type: " + currentMessage.getMessageType());
+      }
+    } else {
+      // Disconnect
+      LOGGER.info("The Validator disconnected, trying to register.");
+      this.registered.compareAndSet(true, false);
+    }
+  }
+
+  /**
    * Send a registration request for all handlers in this processor.
    */
   private void registerHandlers() {
     if (!this.registered.get()) {
-      for (SimpleEntry<String, String> handlerKey : this.handlers.keySet()) {
-        TransactionHandler handler = this.handlers.get(handlerKey);
-        TpRegisterRequest registerRequest = TpRegisterRequest.newBuilder().setFamily(handler.transactionFamilyName())
-            .addAllNamespaces(handler.getNameSpaces()).setVersion(handler.getVersion()).build();
-        LOGGER.info(String.format("Registering handlers family=%s version=%s", handler.transactionFamilyName(),
-            handler.getVersion()));
-        try {
-          Future fut = this.stream.send(Message.MessageType.TP_REGISTER_REQUEST, registerRequest.toByteString());
-          fut.getResult();
-          this.registered.compareAndSet(false, true);
-        } catch (InterruptedException ie) {
-          LOGGER.log(Level.WARNING, "Interrupted while registering TransactionHandler", ie);
-        } catch (ValidatorConnectionError vce) {
-          LOGGER.log(Level.WARNING, vce.toString());
+      synchronized (this.handlers) {
+        for (SimpleEntry<String, String> handlerKey : this.handlers.keySet()) {
+          TransactionHandler handler = this.handlers.get(handlerKey);
+          TpRegisterRequest registerRequest = TpRegisterRequest.newBuilder().setFamily(handler.transactionFamilyName())
+              .addAllNamespaces(handler.getNameSpaces()).setVersion(handler.getVersion()).build();
+          LOGGER.info(String.format("Registering handlers family=%s version=%s", handler.transactionFamilyName(),
+              handler.getVersion()));
+          try {
+            Future fut = this.stream.send(Message.MessageType.TP_REGISTER_REQUEST, registerRequest.toByteString());
+            fut.getResult();
+            this.registered.compareAndSet(false, true);
+          } catch (InterruptedException ie) {
+            LOGGER.log(Level.WARNING, "Interrupted while registering TransactionHandler", ie);
+          } catch (ValidatorConnectionError vce) {
+            LOGGER.log(Level.WARNING, vce.toString());
+          }
         }
       }
     }

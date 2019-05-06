@@ -14,6 +14,7 @@
 
 package sawtooth.sdk.messaging;
 
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeoutException;
 
 import com.google.protobuf.ByteString;
@@ -62,4 +63,9 @@ public interface Stream extends AutoCloseable {
    */
   Message receive(long timeout) throws TimeoutException;
 
+  /**
+   * Get a message queue that this stream will publish messages to.
+   * @return a BlockingQueue for the consumer can take messages from.
+   */
+  BlockingQueue<MessageWrapper> getReceiveQueue();
 }

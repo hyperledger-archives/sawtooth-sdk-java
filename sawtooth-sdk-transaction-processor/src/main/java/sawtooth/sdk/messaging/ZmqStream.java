@@ -15,6 +15,7 @@
 package sawtooth.sdk.messaging;
 
 import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -35,7 +36,7 @@ public class ZmqStream implements Stream {
   /**
    * Threadsafe queue to interact with the background thread.
    */
-  private LinkedBlockingQueue<SendReceiveThread.MessageWrapper> receiveQueue;
+  private LinkedBlockingQueue<MessageWrapper> receiveQueue;
   /**
    * The background thread.
    */
@@ -51,7 +52,7 @@ public class ZmqStream implements Stream {
    */
   public ZmqStream(final String address) {
     this.futureHashMap = new ConcurrentHashMap<String, Future>();
-    this.receiveQueue = new LinkedBlockingQueue<SendReceiveThread.MessageWrapper>();
+    this.receiveQueue = new LinkedBlockingQueue<MessageWrapper>();
     this.sendReceiveThread = new SendReceiveThread(address, futureHashMap, this.receiveQueue);
     this.thread = new Thread(sendReceiveThread);
     this.thread.start();
@@ -115,7 +116,7 @@ public class ZmqStream implements Stream {
    */
   @Override
   public final Message receive() {
-    SendReceiveThread.MessageWrapper result = null;
+    MessageWrapper result = null;
     try {
       result = this.receiveQueue.take();
     } catch (InterruptedException ie) {
@@ -133,7 +134,7 @@ public class ZmqStream implements Stream {
    */
   @Override
   public final Message receive(final long timeout) throws TimeoutException {
-    SendReceiveThread.MessageWrapper result = null;
+    MessageWrapper result = null;
     try {
       result = this.receiveQueue.poll(timeout, TimeUnit.SECONDS);
       if (result == null) {
@@ -146,11 +147,20 @@ public class ZmqStream implements Stream {
   }
 
   /**
-   * generate a random String, to correlate sent messages. with futures
+   * Generate a random String, to correlate sent messages. with futures.
    * @return a random String
    */
   private String generateId() {
     return UUID.randomUUID().toString();
+  }
+
+  /**
+   * This method returns a queue of MessageWrapper messages, which contain
+   * messages which have been received on this stream.
+   */
+  @Override
+  public final BlockingQueue<MessageWrapper> getReceiveQueue() {
+    return this.receiveQueue;
   }
 
 }
