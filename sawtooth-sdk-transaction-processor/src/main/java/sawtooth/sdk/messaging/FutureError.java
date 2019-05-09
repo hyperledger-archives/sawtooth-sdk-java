@@ -21,15 +21,16 @@ import sawtooth.sdk.processor.exceptions.ValidatorConnectionError;
 import java.util.concurrent.TimeoutException;
 
 /**
- * FutureError throws a ValidatorConnectionError from all of its methods.
- * Used to resolve a future with an error response.
+ * FutureError throws a ValidatorConnectionError from all of its methods. Used
+ * to resolve a future with an error response.
  */
 public class FutureError implements Future {
 
   /**
    * Constructor.
    */
-  public FutureError() { }
+  public FutureError() {
+  }
 
   /**
    * Always raises ValidatorConnectionError.
@@ -44,7 +45,7 @@ public class FutureError implements Future {
    * Always raises ValidatorConnectionError.
    * @param time The timeout.
    * @throws ValidatorConnectionError Always throws this Exception.
-   * @throws TimeoutException Does not throw this exception.
+   * @throws TimeoutException         Does not throw this exception.
    * @return Does not return.
    */
   public final ByteString getResult(final long time) throws TimeoutException, ValidatorConnectionError {
