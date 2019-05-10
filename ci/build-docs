@@ -1,0 +1,55 @@
+# Copyright 2019 Cargill Incorporated
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+# Description:
+#   Builds the environment needed to build the Java SDK docs
+#   Running the image will put the Java SDK docs in
+#   sawtooth-sdk-java/docs/build on your local machine.
+#
+# Build:
+#   $ cd sawtooth-sdk-java
+#   $ docker build . -f ci/build-docs -t sawtooth-sdk-java-docs
+#
+# Run:
+#   $ cd sawtooth-sdk-java
+#   $ docker run -v $(pwd):/project/sawtooth-sdk-java sawtooth-sdk-java-docs
+
+FROM maven:3-jdk-11
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y -q \
+    dvipng \
+    python3-pip \
+    texlive-fonts-recommended \
+    texlive-latex-base \
+    texlive-latex-extra \
+    texlive-latex-recommended \
+    zip \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/* \
+ && pip3 install \
+    sphinx \
+    sphinxcontrib-httpdomain \
+    sphinxcontrib-openapi \
+    sphinx_rtd_theme
+
+WORKDIR /project/sawtooth-sdk-java/docs
+
+CMD mkdir -p build/html/java_docs \
+ && sphinx-build -b html source build/html \
+ && cd ../sawtooth-sdk-signing \
+ && mvn javadoc:javadoc \
+ && cp -rf target/site/apidocs/* ../docs/build/html/java_docs
