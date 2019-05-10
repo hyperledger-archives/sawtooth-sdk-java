@@ -108,6 +108,13 @@ pipeline {
             }
         }
 
+        stage ('Build Documentation') {
+            steps {
+                sh 'docker build . -f ci/build-docs -t sawtooth-sdk-java-docs:$ISOLATION_ID'
+                sh 'docker run -v $(pwd):/project/sawtooth-sdk-java sawtooth-sdk-java-docs:$ISOLATION_ID'
+            }
+        }
+
     }
 
     post {
