@@ -126,7 +126,7 @@ pipeline {
             sh 'docker-compose -f examples/xo_java/tests/test_xo_smoke_java.yaml down'
         }
         success {
-            archiveArtifacts '*.tgz, *.zip'
+            archiveArtifacts '*.tgz, *.zip, docs/build/html/**'
         }
         aborted {
             error "Aborted, exiting now"
