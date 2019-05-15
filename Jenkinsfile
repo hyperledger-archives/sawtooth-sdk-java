@@ -108,6 +108,13 @@ pipeline {
             }
         }
 
+        stage ('Build Documentation') {
+            steps {
+                sh 'docker build . -f ci/build-docs -t sawtooth-sdk-java-docs:$ISOLATION_ID'
+                sh 'docker run -v $(pwd):/project/sawtooth-sdk-java sawtooth-sdk-java-docs:$ISOLATION_ID'
+            }
+        }
+
     }
 
     post {
@@ -119,7 +126,7 @@ pipeline {
             sh 'docker-compose -f examples/xo_java/tests/test_xo_smoke_java.yaml down'
         }
         success {
-            archiveArtifacts '*.tgz, *.zip'
+            archiveArtifacts '*.tgz, *.zip, docs/build/html/**'
         }
         aborted {
             error "Aborted, exiting now"
