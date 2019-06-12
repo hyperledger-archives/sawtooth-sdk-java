@@ -2,9 +2,9 @@ Overview
 ========
 
 This tutorial shows how to use the Sawtooth Java SDK to develop a
-client. The client is responsible for creating and signing transactions, combining
-those transactions into batches, and submitting them to the validator. The
-client can post batches through the REST API or connect directly to the
+client. The client is responsible for creating and signing transactions,
+combining those transactions into batches, and submitting them to the validator.
+The client can post batches through the REST API or connect directly to the
 validator via `ZeroMQ <http://zeromq.org>`_.
 
 .. note::
