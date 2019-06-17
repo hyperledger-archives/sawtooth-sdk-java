@@ -19,7 +19,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = u'sawtooth-java-sdk'
+project = u'Sawtooth Java SDK'
 copyright = u'2019, Bitwise IO'
 author = u'Bitwise IO'
 
@@ -144,7 +144,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'sawtooth-java-sdk.tex', u'sawtooth-java-sdk Documentation',
+    (master_doc, 'sawtooth-java-sdk.tex', u'Sawtooth Java SDK Documentation',
      u'Bitwise IO', 'manual'),
 ]
 
@@ -154,7 +154,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'sawtooth-java-sdk', u'sawtooth-java-sdk Documentation',
+    (master_doc, 'sawtooth-java-sdk', u'Sawtooth Java SDK Documentation',
      [author], 1)
 ]
 
@@ -165,8 +165,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'sawtooth-java-sdk', u'sawtooth-java-sdk Documentation',
-     author, 'sawtooth-java-sdk', 'One line description of project.',
+    (master_doc, 'sawtooth-java-sdk', u'Sawtooth Java SDK Documentation',
+     author, 'sawtooth-java-sdk', 'Learn how to write a Sawtooth client with the Java SDK.',
      'Miscellaneous'),
 ]
 
