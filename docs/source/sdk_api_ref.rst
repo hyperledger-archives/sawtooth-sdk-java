@@ -7,7 +7,9 @@ Java SDK API Reference
    :maxdepth: 2
 
 - `Signing
-  <java_docs/index.html>`__
+  <java_docs/signing/index.html>`__
+- `Transaction Processor
+  <java_docs/processor/index.html>`__
 
 
 
