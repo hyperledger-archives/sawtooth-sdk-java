@@ -52,10 +52,14 @@ CMD mvn install \
  && cd docs \
  && mkdir -p build/html/java_docs/signing \
  && mkdir -p build/html/java_docs/processor \
+ && mkdir -p build/html/java_docs/protos \
  && sphinx-build -b html source build/html \
  && cd ../sawtooth-sdk-signing \
  && mvn javadoc:javadoc \
  && cp -rf target/site/apidocs/* ../docs/build/html/java_docs/signing \
  && cd ../sawtooth-sdk-transaction-processor \
  && mvn javadoc:javadoc \
- && cp -rf target/site/apidocs/* ../docs/build/html/java_docs/processor
+ && cp -rf target/site/apidocs/* ../docs/build/html/java_docs/processor \
+ && cd ../sawtooth-sdk-protos \
+ && mvn javadoc:javadoc \
+ && cp -rf target/site/apidocs/* ../docs/build/html/java_docs/protos

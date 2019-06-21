@@ -9,6 +9,7 @@ BUILDDIR      = build
 HTMLDIR       = $(BUILDDIR)/html
 SIGNINGSDK    = ../sawtooth-sdk-signing/src/main/java
 PROCESSOR     = ../sawtooth-sdk-transaction-processor/src/main/java
+PROTOS        = ../sawtooth-sdk-protos
 
 # Put it first so that "make" without argument is like "make help".
 help:
@@ -22,6 +23,10 @@ java:
 	javadoc -d $(JAVADOCSDIR)/signing -sourcepath $(SIGNINGSDK) sawtooth.sdk.signing
 	mkdir -p $(JAVADOCSDIR)/processor
 	javadoc -d $(JAVADOCSDIR)/processor -sourcepath $(PROCESSOR) sawtooth.sdk.processor
+	mkdir -p $(JAVADOCSDIR)/protos
+	cd $(PROTOS) \
+		&& mvn javadoc:javadoc \
+		&& cp -rf target/site/apidocs/* ../docs/$(JAVADOCSDIR)/protos
 
 html: java
 	$(SPHINXBUILD) -b html $(SOURCEDIR) $(HTMLDIR) $(SPHINXOPTS)

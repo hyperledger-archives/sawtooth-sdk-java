@@ -10,6 +10,8 @@ Java SDK API Reference
   <java_docs/signing/index.html>`__
 - `Transaction Processor
   <java_docs/processor/index.html>`__
+- `Protos
+  <java_docs/protos/index.html>`__
 
 
 
