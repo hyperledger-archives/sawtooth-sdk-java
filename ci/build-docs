@@ -46,10 +46,20 @@ RUN apt-get update && apt-get install -y -q \
     sphinxcontrib-openapi \
     sphinx_rtd_theme
 
-WORKDIR /project/sawtooth-sdk-java/docs
+WORKDIR /project/sawtooth-sdk-java
 
-CMD mkdir -p build/html/java_docs \
+CMD mvn install \
+ && cd docs \
+ && mkdir -p build/html/java_docs/signing \
+ && mkdir -p build/html/java_docs/processor \
+ && mkdir -p build/html/java_docs/protos \
  && sphinx-build -b html source build/html \
  && cd ../sawtooth-sdk-signing \
  && mvn javadoc:javadoc \
- && cp -rf target/site/apidocs/* ../docs/build/html/java_docs
+ && cp -rf target/site/apidocs/* ../docs/build/html/java_docs/signing \
+ && cd ../sawtooth-sdk-transaction-processor \
+ && mvn javadoc:javadoc \
+ && cp -rf target/site/apidocs/* ../docs/build/html/java_docs/processor \
+ && cd ../sawtooth-sdk-protos \
+ && mvn javadoc:javadoc \
+ && cp -rf target/site/apidocs/* ../docs/build/html/java_docs/protos
