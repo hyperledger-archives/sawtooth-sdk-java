@@ -279,7 +279,7 @@ class SendReceiveThread implements Runnable {
     } finally {
       lock.unlock();
     }
-    ZLoop eventLoop = new ZLoop();
+    ZLoop eventLoop = new ZLoop(this.context);
     ZMQ.PollItem pollItem = new ZMQ.PollItem(socket, ZMQ.Poller.POLLIN);
     eventLoop.addPoller(pollItem, new Receiver(futures, receiveQueue), new Object());
     eventLoop.start();
