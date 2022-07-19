@@ -58,7 +58,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <protobuf.version>3.6.1</protobuf.version>
+        <protobuf.version>3.16.1</protobuf.version>
         <checkstyle.path>../checkstyle.xml</checkstyle.path>
         <maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
     </properties>
